@@ -18,7 +18,7 @@ def main(page: ft.Page):
         [
             ft.Row([
                 ft.Image(
-                src=f"https://picsum.photos/300/300",
+                src="https://picsum.photos/300/300",
                 width=300,
                 height=300,
                 fit=ft.ImageFit.CONTAIN,
@@ -39,3 +39,13 @@ def main(page: ft.Page):
     page.add(ft.TextButton('ver', on_click=show))
 
 ft.app(target=main)
+nivelusuario = 0
+def comprobacion(minimo, user):
+    if user < minimo:
+        #motrar cuadro de dialogo que diiga que no tiene permisos
+        return False
+    return True
+def funcion_del_widget():
+    nivel_minimo = 2
+    if comprobacion(nivel_minimo, nivelusuario):
+        pass # Funcionalidad de widiget normal

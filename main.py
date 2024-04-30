@@ -1,14 +1,6 @@
-from Modulos import GUI
 import flet as ft
-
-
-DIRECCIONES= {
-    'inicio': '/',
-    'inventario': '/app/procesos',
-    'reporte': '/app/reportes',
-    'ayuda': '/app/ayuda',
-    'archivos': '/app/archivos'
-}
+from Modulos.GUI.iniciosesion import InicioSesion, inventario, MenuLateral
+from Modulos.globals import DIRECCIONES, show_drawer
 class User():
     def __init__(self, identificador, clave):
         self.id = identificador
@@ -25,23 +17,23 @@ def main(page: ft.Page):
 
     
     page.theme = ft.Theme(color_scheme_seed="blue")# cambiar los colores oir lo
-    InicioSesion = GUI.InicioSesion(page=page)
-    inventario = GUI.inventario(page=page)
+    InicioSesion1 = InicioSesion(page=page)
+    inventario1 = inventario(page=page)
     
     def cambio(a):
         page.views.clear()
         page.views.append(
             ft.View(
                 '/',
-                [InicioSesion]
+                [InicioSesion1]
             )
         )
         if page.route == '/app/procesos':
             page.views.append(
                 ft.View(
                     '/app/procesos',
-                    [ft.AppBar(title=ft.Text("Procesos"), bgcolor=ft.colors.SURFACE_VARIANT), inventario],
-                    drawer=GUI.MenuLateral(page=page)
+                    [ft.AppBar(title=ft.Text("Procesos"), bgcolor=ft.colors.SURFACE_VARIANT), inventario1],
+                    drawer=MenuLateral(page=page)
                 )
             )
         elif page.route == "/app/ayuda":
@@ -53,7 +45,7 @@ def main(page: ft.Page):
                         ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=GUI.MenuLateral(page=page)
+                    drawer=MenuLateral(page=page)
                 )
             )
         elif page.route == "/app/p":
@@ -65,7 +57,7 @@ def main(page: ft.Page):
                         ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=GUI.MenuLateral(page=page)
+                    drawer=MenuLateral(page=page)
                 )
             )
         elif page.route == "/app/reportes":
@@ -77,7 +69,7 @@ def main(page: ft.Page):
                         ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=GUI.MenuLateral(page=page)
+                    drawer=MenuLateral(page=page)
                 )
             )
         elif page.route == "/app/archivos":
@@ -89,12 +81,12 @@ def main(page: ft.Page):
                         ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=GUI.MenuLateral(page=page)
+                    drawer=MenuLateral(page=page)
                 )
             )
 
         page.update()
-    
+
     def view_pop(view):
         page.views.pop()
         top_view = page.views[-1]
@@ -113,9 +105,8 @@ def main(page: ft.Page):
     page.go(page.route)
     page.add()
     page.title = 'hola'
-def show_drawer(e):
-        e.page.views[-1].drawer.open = True
-        e.page.views[-1].update()
+
+
 
 if __name__ == '__main__':
     ft.app(target=main)

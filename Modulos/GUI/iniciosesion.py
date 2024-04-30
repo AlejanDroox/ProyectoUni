@@ -1,5 +1,5 @@
 import flet as ft
-from main import show_drawer, DIRECCIONES
+from Modulos.globals import DIRECCIONES, show_drawer
 # region clases
 class Producto():
     def __init__(self, Nproduct:str, des:str, Existencias:float, page:ft.Page, ID:int):
@@ -241,8 +241,7 @@ def MenuLateral(page:ft.Page):
             ft.NavigationDrawerDestination(
                 icon_content=ft.Icon(ft.icons.BACKUP_OUTLINED),
                 label="BACKUP",
-                selected_icon=ft.icons.BACKUP,
-                
+                selected_icon=ft.icons.BACKUP,              
             ),
         ],
         on_change=hola
