@@ -11,13 +11,13 @@ class ControlUsuarios:
     def __init__(self, db_connector):
         self.db_connector = db_connector
 
-    def create_user(self, username, password):
+    def create_user(self, username, password) -> bool:
         """Metodo de Creacion de Usuarios"""
         hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         try:
             cursor = self.db_connector.connection.cursor()
             cursor.execute(
-                "INSERT INTO usuarios (nombres, contraseña) VALUES (%s, %s)", (username, hashed))
+                "INSERT INTO users (Username, Password, Status) VALUES (%s, %s, %s)", (username, hashed, 1))
             self.db_connector.connection.commit()
             print("Usuario creado exitosamente.")
         except mysql.connector.Error as e:
@@ -28,7 +28,7 @@ class ControlUsuarios:
         try:
             cursor = self.db_connector.connection.cursor()
             cursor.execute(
-                "SELECT contraseña FROM usuarios WHERE nombres = %s", (username,))
+                "SELECT Password FROM users WHERE Username = %s", (username,))
             user = cursor.fetchone()
 
             if user:
@@ -50,24 +50,24 @@ class ControlUsuarios:
         try:
             cursor = self.db_connector.connection.cursor()
             cursor.execute(
-                "UPDATE usuarios SET contraseña = %s WHERE nombres = %s", (hashed, username))
+                "UPDATE users SET Password = %s WHERE Username = %s", (hashed, username))
             self.db_connector.connection.commit()
             print("contraseña cambiada exitosamente.")
         except mysql.connector.Error as e:
             print("Error con el cambio de contraseña", e)
 
     def delete_user(self, username):
-        """Metodo para borrar usuarios"""
+        """Metodo para borrar users"""
         try:
             cursor = self.db_connector.connection.cursor()
             cursor.execute(
-                "SELECT nombres FROM usuarios WHERE nombres = %s", (username,))
+                "SELECT Username FROM users WHERE Username = %s", (username,))
             user = cursor.fetchone()
 
             if user:
 
                 cursor.execute(
-                    "DELETE FROM usuarios WHERE nombres = %s", (username,))
+                    "DELETE FROM users WHERE Username = %s", (username,))
                 self.db_connector.connection.commit()
 
                 print(f"Usuario borrado {username} correctamente.")

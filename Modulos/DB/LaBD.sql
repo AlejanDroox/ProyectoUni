@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS `dbferreteria`.`Users` ;
 CREATE TABLE IF NOT EXISTS `dbferreteria`.`Users` (
   `idUsers` INT NOT NULL AUTO_INCREMENT,
   `Username` VARCHAR(45) NOT NULL,
-  `Password` VARCHAR(45) NOT NULL,
+  `Password` VARCHAR(256) NOT NULL,
   `Status` TINYINT NOT NULL,
   PRIMARY KEY (`idUsers`),
   UNIQUE INDEX `idUsers_UNIQUE` (`idUsers` ASC) VISIBLE,

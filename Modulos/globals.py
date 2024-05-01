@@ -1,4 +1,5 @@
-"""Modulo donde se podran variables y constantes para acceder desde cualquier lado evitando la importacion circular"""
+"""Modulo donde se podran variables y constantes para acceder desde cualquier
+lado evitando la importacion circular"""
 
 DIRECCIONES= {
     'inicio': '/',
@@ -9,5 +10,8 @@ DIRECCIONES= {
 }
 
 def show_drawer(e):
+    """mostrar menu lateral"""
     e.page.views[-1].drawer.open = True
     e.page.views[-1].update()
+
+# End-of-file (EOF)

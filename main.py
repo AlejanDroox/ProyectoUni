@@ -1,39 +1,31 @@
+"""libreria interfaz"""
 import flet as ft
-from Modulos.GUI.iniciosesion import InicioSesion, inventario, MenuLateral
+from Modulos.GUI.general import inventario, menu_lateral
+from Modulos.GUI.iniciosesion import inicio_sesion
 from Modulos.globals import DIRECCIONES, show_drawer
-class User():
-    def __init__(self, identificador, clave):
-        self.id = identificador
-        self._pass = clave
-    def Valid(self):
-        #aqui hariamos la comprobacion
-        if True:
-            return True
-        else:
-            raise NotFoundValueUser("Valores no encontrados en el sistema")
-def main(page: ft.Page):
-    
-    
 
-    
+def main(page: ft.Page):
+    """funcion principal"""
     page.theme = ft.Theme(color_scheme_seed="blue")# cambiar los colores oir lo
-    InicioSesion1 = InicioSesion(page=page)
+    body_inicio = inicio_sesion(page=page)
     inventario1 = inventario(page=page)
-    
-    def cambio(a):
+    # pylint: disable=unused-argument
+    def cambio(e):
         page.views.clear()
         page.views.append(
             ft.View(
                 '/',
-                [InicioSesion1]
+                [body_inicio]
             )
         )
-        if page.route == '/app/procesos':
+        if page.route == DIRECCIONES['inventario']:
             page.views.append(
                 ft.View(
-                    '/app/procesos',
-                    [ft.AppBar(title=ft.Text("Procesos"), bgcolor=ft.colors.SURFACE_VARIANT), inventario1],
-                    drawer=MenuLateral(page=page)
+                    DIRECCIONES['inventario'],
+                    [ft.AppBar(title=ft.Text("Procesos"),
+                    bgcolor=ft.colors.SURFACE_VARIANT),
+                    inventario1],
+                    drawer=menu_lateral(page=page)
                 )
             )
         elif page.route == "/app/ayuda":
@@ -42,10 +34,10 @@ def main(page: ft.Page):
                     "/app/ayuda",
                     [
                         ft.AppBar(title=ft.Text("app/ayuda"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
+                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=MenuLateral(page=page)
+                    drawer=menu_lateral(page=page)
                 )
             )
         elif page.route == "/app/p":
@@ -54,10 +46,10 @@ def main(page: ft.Page):
                     "/app/p",
                     [
                         ft.AppBar(title=ft.Text("app/procesos"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
+                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=MenuLateral(page=page)
+                    drawer=menu_lateral(page=page)
                 )
             )
         elif page.route == "/app/reportes":
@@ -66,10 +58,10 @@ def main(page: ft.Page):
                     "/app/reportes",
                     [
                         ft.AppBar(title=ft.Text("app/reportes"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
+                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=MenuLateral(page=page)
+                    drawer=menu_lateral(page=page)
                 )
             )
         elif page.route == "/app/archivos":
@@ -78,21 +70,22 @@ def main(page: ft.Page):
                     "/app/archivos",
                     [
                         ft.AppBar(title=ft.Text("app/archivos"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go("/app/procesos")),
+                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=MenuLateral(page=page)
+                    drawer=menu_lateral(page=page)
                 )
             )
 
         page.update()
-
+    # pylint: disable=unused-argument
     def view_pop(view):
         page.views.pop()
         top_view = page.views[-1]
         page.go(top_view.route)
     def key_event(e:ft.KeyboardEvent):
-        print(e.key)
+        #print(e.key)
+        pass
     page.on_keyboard_event = key_event
     page.window_width = 1280
     page.window_height = 960
@@ -110,3 +103,5 @@ def main(page: ft.Page):
 
 if __name__ == '__main__':
     ft.app(target=main)
+
+# End-of-file (EOF)
