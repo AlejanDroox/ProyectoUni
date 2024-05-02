@@ -1,8 +1,9 @@
-"""libreria de ka interfaz"""
+"""Contiene todo la estructura visual del inicio de sesion y
+los procesos de la ventana misma"""
 import flet as ft
-from Modulos.globals import DIRECCIONES
-from Modulos.DB.db_connector import DBConnector
-from Modulos.DB.ctrlusuarios import ControlUsuarios
+from Modulos.globals import DIRECCIONES, CONFIG
+from Modulos.db.db_connector import DbConnector
+from Modulos.db.ctrlusers import ControlUsuarios
 
 def inicio_sesion(page: ft.Page) -> ft.Container("body del inicio de sesion"):
     """devuelve toda la estructura del inicio de sesion"""
@@ -81,31 +82,24 @@ def inicio_sesion(page: ft.Page) -> ft.Container("body del inicio de sesion"):
 
 def auth(page:ft.Page, user, passw):
     """autentificacion para el enrutamiento del inicio de sesion"""
-    config = {
-        'user': 'root',
-        'password': '1234',
-        'host': '127.0.0.1',
-        'database': 'dbferreteria',  # nombre de la BD
-        "port": "3306"
-    }
-    conx = DBConnector(config=config)
-    conx.connect()
+
+    conx = DbConnector(config=CONFIG)
     ctrl = ControlUsuarios(conx)
-    if ctrl.authenticate_user(user,passw):
+    if ctrl.auth_user(user,passw):
         page.go(DIRECCIONES['inventario'])
         print(user)
 
-"""
-proceso para crear usuario
-config = {
-        'user': 'root',
-        'password': '1234',
-        'host': '127.0.0.1',
-        'database': 'dbferreteria',  # nombre de la BD
-        "port": "3306"
-    }
-    conx = DBConnector(config=config)
-    conx.connect()
-    ctrl = ControlUsuarios(conx)
-    ctrl.create_user(username='hola', password= '1234')
-"""
+
+
+#proceso para crear usuario
+#config = {
+#        'user': 'root',
+#        'password': '1234',
+#        'host': '127.0.0.1',
+#        'database': 'dbferreteria',  # nombre de la BD
+#        "port": "3306"
+#    }
+#    conx = DBConnector(config=config)
+#    conx.connect()
+#    ctrl = ControlUsuarios(conx)
+#    ctrl.create_user(username='hola', password= '1234')

@@ -1,4 +1,4 @@
-"""libreria interfaz"""
+"""Script principal"""
 import flet as ft
 from Modulos.GUI.general import inventario, menu_lateral
 from Modulos.GUI.iniciosesion import inicio_sesion
@@ -18,6 +18,7 @@ def main(page: ft.Page):
                 [body_inicio]
             )
         )
+    # aqui iria los meas route y toda la vaina pero se alarga mucho la imagen
         if page.route == DIRECCIONES['inventario']:
             page.views.append(
                 ft.View(
@@ -34,7 +35,8 @@ def main(page: ft.Page):
                     "/app/ayuda",
                     [
                         ft.AppBar(title=ft.Text("app/ayuda"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
+                        ft.ElevatedButton("Go store",
+                        on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
                     drawer=menu_lateral(page=page)
@@ -46,7 +48,8 @@ def main(page: ft.Page):
                     "/app/p",
                     [
                         ft.AppBar(title=ft.Text("app/procesos"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
+                        ft.ElevatedButton("Go store",
+                        on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
                     drawer=menu_lateral(page=page)
@@ -58,7 +61,8 @@ def main(page: ft.Page):
                     "/app/reportes",
                     [
                         ft.AppBar(title=ft.Text("app/reportes"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
+                        ft.ElevatedButton("Go store",
+                        on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
                     drawer=menu_lateral(page=page)
@@ -70,7 +74,8 @@ def main(page: ft.Page):
                     "/app/archivos",
                     [
                         ft.AppBar(title=ft.Text("app/archivos"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store", on_click=lambda _: page.go(DIRECCIONES['inventario'])),
+                        ft.ElevatedButton("Go store",
+                        on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
                     drawer=menu_lateral(page=page)
