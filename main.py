@@ -1,7 +1,7 @@
 """Script principal"""
 import flet as ft
-from Modulos.GUI.general import inventario, menu_lateral
-from Modulos.GUI.iniciosesion import inicio_sesion
+from Modulos.gui.general import inventario, menu_lateral
+from Modulos.gui.iniciosesion import inicio_sesion
 from Modulos.globals import DIRECCIONES, show_drawer
 
 def main(page: ft.Page):
