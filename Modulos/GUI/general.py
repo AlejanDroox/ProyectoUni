@@ -1,29 +1,37 @@
-"""Libreria de la interfaz"""
+"""Contiene todo lo relacionado a la estructura y
+procesos de la ventana 'procesos', valga la redundancia"""
 import flet as ft
 from Modulos.globals import show_drawer
 # region clases
 class Producto():
-    def __init__(self, Nproduct:str, des:str, Existencias:float, page:ft.Page, ID:int):
+    """Crea la estructura visual de cada producto"""
+    def __init__(self, n_producto:str,marca:str, des:str, existencia:int,
+                page:ft.Page, id_producto:int):
         self.page = page
-        self.ID = ID
-        self.TiDes = ft.ListTile(
-                        leading=ft.Icon(ft.icons.LOCK),
-                        title=ft.Text(Nproduct),
+        self.id_producto = id_producto
+        self.nombre_compuesto = ft.ListTile(
+                        #leading=ft.Icon(ft.icons.LOCK),
+                        title=ft.Text(f'{n_producto} {marca}'),
                         subtitle=ft.Text(value=des,
                                         max_lines=3),
                         #selected=True
                     )
-        self.Existencias =  ft.Text(value=1)
+        self.existencia =  ft.Text(value=existencia)
         self.card = ft.Card(
             content=ft.Container(
                 content=ft.Column([
-                    self.TiDes,
+                    ft.Row([ft.Image(
+                        src=f"https://picsum.photos/300/200{id_producto}",
+                        width=250,
+                        height= 150,
+                        fit=ft.ImageFit.COVER,
+                    ),self.nombre_compuesto]),
                     ft.Row([
                         ft.IconButton(
                             icon=ft.icons.ADD,
-                            on_click=self.operacion 
+                            on_click=self.operacion
                         ),
-                        self.Existencias,
+                        self.existencia,
                         ft.IconButton(
                             icon=ft.icons.REMOVE,
                             on_click=self.operacion
@@ -32,26 +40,26 @@ class Producto():
                 ],
                 
                 ),
-                width=350,
-                height=175,
+                width=525,
+                height=225,
                 on_hover=lambda _: self.Hover(),
                 
             ),
         )
     def Hover(self):
-        if self.TiDes.selected:
-            self.TiDes.selected = False
+        if self.nombre_compuesto.selected:
+            self.nombre_compuesto.selected = False
         else:
-            self.TiDes.selected = True
+            self.nombre_compuesto.selected = True
         self.page.update()
     
     def operacion(*e):
         self:Producto = e[0] # el argumento 0 es si mismo
         widget: ft.ControlEvent = e[1] # es el objeto que manda flet
         if widget.control.icon == 'add':
-            self.Existencias.value += 1
+            self.existencia.value += 1
         else:
-            self.Existencias.value -= 1
+            self.existencia.value -= 1
         widget.page.update()
     
     def ActualizarBD(self): # esta puede ser la funcion para guardar cambios a la base de datos una vez confirmados, no se si aqui directamente o llmando a otra
@@ -72,7 +80,7 @@ class LineaProductos():
         #print(len(self.lineas[-1].controls))
         try:
             cantidad = len(self.lineas[-1].controls) 
-            if cantidad < 3:
+            if cantidad < 2:
                 self.lineas[-1].controls.append(producto.card)
             else:
                 linea.controls.append(producto.card)
@@ -89,7 +97,8 @@ class LineaProductos():
 def inventario(page: ft.Page):
     ContenedorProductos = LineaProductos()  # Create an instance of the LineaProductos class
     for i in range(20):
-        algo = Producto(ferreteria_nombres[i], ferreteria_descripciones[i],0.1, page=page, ID=i)
+        algo = Producto(n_producto=ferreteria_nombres[i],marca='China',
+        des=ferreteria_descripciones[i],existencia=1, page=page, id_producto=i)
         ContenedorProductos.agg(producto=algo)
     tab1 = ft.Container(
         ft.Row([

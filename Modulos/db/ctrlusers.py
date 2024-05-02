@@ -11,7 +11,7 @@ class ControlUsuarios:
     2. auth_user
     3. reset_pass
     4. dell_user"""
-    def __init__(self, conector):
+    def __init__(self, conector:DbConnector):
         self.db_connector = conector
 
     def create_user(self, username, password) -> bool:
