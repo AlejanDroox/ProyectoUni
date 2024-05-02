@@ -8,6 +8,11 @@ DIRECCIONES= {
     'ayuda': '/app/ayuda',
     'archivos': '/app/archivos'
 }
+"""Direcciones de enrutamiento para flet"""
+
+CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
+""" Configuracion de conexion de Base de datos"""
+
 
 def show_drawer(e):
     """mostrar menu lateral"""
