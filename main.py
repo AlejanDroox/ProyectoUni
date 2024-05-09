@@ -1,7 +1,7 @@
 """Script principal"""
 import flet as ft
-from Modulos.GUI.general import inventario, menu_lateral
-from Modulos.GUI.iniciosesion import inicio_sesion
+from Modulos.gui.procesos import inventario, menu_lateral
+from Modulos.gui.iniciosesion import inicio_sesion
 from Modulos.globals import DIRECCIONES, show_drawer
 
 def main(page: ft.Page):
@@ -102,7 +102,7 @@ def main(page: ft.Page):
     page.on_view_pop = view_pop
     page.go(page.route)
     page.add()
-    page.title = 'hola'
+    page.title = 'Ferreteria no sea sapo'
 
 
 
