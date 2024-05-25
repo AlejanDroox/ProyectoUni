@@ -2,7 +2,7 @@
 procesos de la ventana 'procesos', valga la redundancia"""
 from time import sleep
 import flet as ft
-from Modulos.globals import user_actual
+from utils.globals import user_actual
 # region clases
 class Producto():
     """Crea la estructura visual de cada producto"""
