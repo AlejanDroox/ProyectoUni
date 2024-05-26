@@ -2,8 +2,8 @@
 #si desea hacer pruebas en este script directamente tienen que quitar los
 #'Modulos.db.' de los from import 👍
 import bcrypt
-from Modulos.db.db_connector import DbConnector
-from Modulos.db.tablas import Base, Usuario
+from db.db_connector import DbConnector
+from db.tablas import Base, Usuario
 
 class ControlUsuarios:
     """Clase con metodos para manipulacion de usuarios. Metodos que contiene:
@@ -11,7 +11,7 @@ class ControlUsuarios:
     2. auth_user
     3. reset_pass
     4. dell_user"""
-    def __init__(self, conector):
+    def __init__(self, conector:DbConnector):
         self.db_connector = conector
 
     def create_user(self, username, password) -> bool:

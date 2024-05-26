@@ -1,13 +1,13 @@
 """Script principal"""
 import flet as ft
-from Modulos.gui.general import inventario, menu_lateral
-from Modulos.gui.iniciosesion import inicio_sesion
-from Modulos.globals import DIRECCIONES, show_drawer
+from views.procesos import inventario, menu_lateral
+from views.iniciosesion import InicioSesion, inicio_sesion
+from utils.globals import DIRECCIONES, show_drawer
 
 def main(page: ft.Page):
     """funcion principal"""
     page.theme = ft.Theme(color_scheme_seed="blue")# cambiar los colores oir lo
-    body_inicio = inicio_sesion(page=page)
+    body_inicio = InicioSesion(page)
     inventario1 = inventario(page=page)
     # pylint: disable=unused-argument
     def cambio(e):
@@ -15,10 +15,9 @@ def main(page: ft.Page):
         page.views.append(
             ft.View(
                 '/',
-                [body_inicio]
+                [body_inicio.body]
             )
         )
-    # aqui iria los meas route y toda la vaina pero se alarga mucho la imagen
         if page.route == DIRECCIONES['inventario']:
             page.views.append(
                 ft.View(
@@ -102,11 +101,9 @@ def main(page: ft.Page):
     page.on_view_pop = view_pop
     page.go(page.route)
     page.add()
-    page.title = 'hola'
+    page.title = 'Ferreteria no sea sapo'
 
 
 
 if __name__ == '__main__':
     ft.app(target=main)
-
-# End-of-file (EOF)
