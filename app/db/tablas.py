@@ -19,3 +19,6 @@ class Usuario(Base):
     nombres = Column(String(255), nullable=False)
     contrasena = Column(String(255), nullable=False)
     Rol= Column(String(45),nullable=False)
+if __name__ == '__main__':
+    h = Usuario()
+    
