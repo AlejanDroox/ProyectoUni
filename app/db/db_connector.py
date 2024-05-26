@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
-class DBConnector:
+class DbConnector:
     """clase que crea y cierra la contraseña"""
 
     def __init__(self, config):
