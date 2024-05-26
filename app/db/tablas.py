@@ -6,12 +6,13 @@ Base = declarative_base()
 
 
 class Usuario(Base):
-    """creora/manipuladora de tabla users. Estructura de la tabla:
-    idUsers:int
-    Username:str(255)
-    Password:str(255)
-    Status: int"""
-    __tablename__ = 'users'
+    """Tabla Usuarios.
+    Nombre: usuariosMysqlalchemy
+    Estructura de la tabla:
+    *   id:int
+    *   nombres:str(255)
+    *   contrasena:str(255)
+    *   rol: str(45)"""
     __tablename__ = 'usuariosMysqlalchemy'
 
     id = Column(Integer, primary_key=True)
