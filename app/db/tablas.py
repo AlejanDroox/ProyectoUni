@@ -12,9 +12,9 @@ class Usuario(Base):
     Password:str(255)
     Status: int"""
     __tablename__ = 'users'
+    __tablename__ = 'usuariosMysqlalchemy'
 
-    idUsers = Column(Integer, primary_key=True)
-    Username = Column(String(255), nullable=False, unique=True)
-    Password = Column(String(255), nullable=False)
-    Status = Column(Integer,nullable=False)
-# EOF
+    id = Column(Integer, primary_key=True)
+    nombres = Column(String(255), nullable=False)
+    contrasena = Column(String(255), nullable=False)
+    Rol= Column(String(45),nullable=False)
