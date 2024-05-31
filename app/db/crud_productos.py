@@ -1,4 +1,4 @@
-from db_connector import DbConnector
+from db.db_connector import DbConnector
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 
@@ -60,7 +60,6 @@ class ControlProductos():
 
             # Configuración de la base de datos
 if __name__ ==' __main__':
-    CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
     conexion = DBConnector(CONFIG)
 
     Base.metadata.create_all(conexion.engine)

@@ -1,6 +1,6 @@
 """Script principal"""
 import flet as ft
-from views.procesos import inventario, menu_lateral
+from views.procesos import Inventario, menu_lateral
 from views.iniciosesion import InicioSesion
 from utils.globals import DIRECCIONES, show_drawer
 
@@ -8,8 +8,6 @@ def main(page: ft.Page):
     """funcion principal"""
     page.theme = ft.Theme(color_scheme_seed="blue")# cambiar los colores oir lo
     body_inicio = InicioSesion(page)
-    inventario1 = inventario(page=page)
-    # pylint: disable=unused-argument
     def cambio(e):
         page.views.clear()
         page.views.append(
@@ -22,9 +20,9 @@ def main(page: ft.Page):
             page.views.append(
                 ft.View(
                     DIRECCIONES['inventario'],
-                    [ft.AppBar(title=ft.Text("Procesos"),
-                    bgcolor=ft.colors.SURFACE_VARIANT),
-                    inventario1],
+                    controls= [ft.AppBar(title=ft.Text("Procesos"),
+                        bgcolor=ft.colors.SURFACE_VARIANT),
+                        Inventario(page=page)],
                     drawer=menu_lateral(page=page)
                 )
             )
@@ -99,6 +97,7 @@ def main(page: ft.Page):
     page.horizontal_alignment = 'CENTER'
     page.on_route_change = cambio
     page.on_view_pop = view_pop
+
     page.go(page.route)
     page.add()
     page.title = 'Ferreteria no sea sapo'

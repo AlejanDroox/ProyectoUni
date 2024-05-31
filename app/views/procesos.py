@@ -2,7 +2,9 @@
 procesos de la ventana 'procesos', valga la redundancia"""
 from time import sleep
 import flet as ft
-from utils.globals import user_actual, DIRECCIONES
+from utils.globals import user_actual, DIRECCIONES, CONFIG
+from db.db_connector import DbConnector
+from db.crud_productos import ControlProductos
 # region clases
 class Producto():
     """Crea la estructura visual de cada producto"""
@@ -112,6 +114,63 @@ class LineaProductos():
             self.lineas.append(linea)
 
 #region funciones de dibujo
+class Inventario(ft.Tabs):
+    def __init__(self, page):
+        super().__init__()
+        self.page = page
+        self.contenido()
+        self.selected_index = 0
+        self.animation_duration = 400
+    def contenido(self):
+        contenedor_productos = LineaProductos()
+        tab_inventario = ft.Container(
+            ft.Row([
+                ft.Column([
+                    ft.Container(
+                        content=contenedor_productos.contenido,
+                        border=ft.border.all(),
+                        padding=ft.padding.only(left=70)
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+            ),
+            border=ft.border.all(),
+        )
+        self.tabs=[
+            ft.Tab(
+                text="EDIT",
+                content=ft.Text('edit'),
+                icon=ft.icons.EDIT_SQUARE,
+                visible= False
+            ),
+            ft.Tab(
+                text="inventario",
+                content=tab_inventario,
+                icon=ft.icons.INVENTORY
+            ),
+            ft.Tab(
+                tab_content=ft.Icon(ft.icons.SEARCH),
+                content=ft.Text("This is Tab 2"),
+            ),
+            ft.Tab(
+                text="Tab 3",
+                icon=ft.icons.SETTINGS,
+                content=ft.Text("This is Tab 3"),
+            ),
+            
+        ]
+        self.expand=1
+        self.cargar_productos(contenedor_productos)
+
+    def cargar_productos(self,cont):
+        for i in range(7):
+            algo = Producto(n_producto=ferreteria_nombres[i],marca='Generica',
+            des=ferreteria_descripciones[i],existencia=i+2, page=self.page, id_producto=i+1, tab=self.tabs)
+            cont.agg_card(producto=algo)
+        print('s')
 
 def inventario(page: ft.Page) -> ft.Tabs():
     """crea y devuelve la estructura de la ventana procesos"""
@@ -157,8 +216,10 @@ def inventario(page: ft.Page) -> ft.Tabs():
                 content=ft.Text("This is Tab 3"),
             ),
         ],
-        expand=1,
     )
+    ctrl_bd = DbConnector(CONFIG)
+    ctrl_p = ControlProductos(ctrl_bd)
+
     for i in range(20):
         algo = Producto(n_producto=ferreteria_nombres[i],marca='Generica',
         des=ferreteria_descripciones[i],existencia=i+2, page=page, id_producto=i+1, tab=body)
