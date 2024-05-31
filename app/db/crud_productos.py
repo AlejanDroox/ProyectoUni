@@ -1,11 +1,12 @@
-from db_connector import DBConnector
+from db_connector import DbConnector
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 
+from utils.globals import CONFIG
+
 
 # Crea el motor de SQLAlchemy
-engine = create_engine(
-    'mysql://root:1234@127.0.0.1:3306/dbferreteria')
+engine = create_engine(CONFIG)
 
 # Crea una instancia de automap_base
 Base = automap_base()
@@ -28,7 +29,7 @@ class ControlProductos():
         return self.db_connector.session.query(Producto).filter_by(nom_Producto=nombre).first()
 
     def create_product(self, nombre, existencia, descripcion, valor, marca,
-                       id_categoria, id_proveedor, id_usuarios):
+                    id_categoria, id_proveedor, id_usuarios):
         """crea un producto"""
         producto = self.encontrar_producto(nombre)
         if not producto:
@@ -58,12 +59,13 @@ class ControlProductos():
             return False
 
             # Configuración de la base de datos
-CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
-conexion = DBConnector(CONFIG)
+if __name__ ==' __main__':
+    CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
+    conexion = DBConnector(CONFIG)
 
-Base.metadata.create_all(conexion.engine)
+    Base.metadata.create_all(conexion.engine)
 
-control_productos = ControlProductos(conexion)
+    control_productos = ControlProductos(conexion)
 
-control_productos.update_products(
-    "Tornillos4", Valor_Producto=20, Existencia=100)
+    control_productos.update_products(
+        "Tornillos4", Valor_Producto=20, Existencia=100)

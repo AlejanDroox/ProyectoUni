@@ -3,7 +3,8 @@ los procesos de la ventana misma"""
 import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
-from db.ctrlusers import ControlUsuarios
+from db.crud_usuarios import ControlUsuarios
+from time import sleep
 class EntrySesion(ft.TextField):
     def __init__(self, label = 'EntrySesion', is_pass = False, icon = None):
         super().__init__()
@@ -21,6 +22,7 @@ class EntrySesion(ft.TextField):
 class InicioSesion():
     def __init__(self, page):
         super().__init__()
+        self.page: ft.Page = page
         self.entry_user =  ft.TextField(
             width=280,
             height=40,
@@ -74,7 +76,7 @@ class InicioSesion():
                                     ),
                                     width=280,
                                     bgcolor='black',
-                                    on_click=lambda _: self.auth(page, self.entry_user.value, self.entry_pass.value)
+                                    on_click=lambda _: self.auth(page)
                                 ),
                                 padding=ft.padding.only(40, 10),
                             ),
@@ -92,36 +94,75 @@ class InicioSesion():
             #border= ft.border.all()
             #alignment= ft.CrossAxisAlignment.CENTER
         )
-
-    def auth(self,page:ft.Page, user, passw):
+        self.banner_fine = ft.Banner(
+            bgcolor=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                colors=[
+                    "0xff1f005c",
+                    "0xff5b0060",
+                    "0xff870160",
+                    "0xffac255e",
+                    "0xffca485c",
+                    "0xffe16b5c",
+                    "0xfff39060",
+                    "0xffffb56b",
+                ],
+                tile_mode=ft.GradientTileMode.MIRROR,
+            ),
+            leading=ft.Icon(ft.icons.CHECK, color=ft.colors.BLUE_GREY, size=40),
+            content=ft.Text("Se ha iniciado sesion con exito", size=30, text_align='center'),
+            actions=[
+            ft.TextButton("OK", on_click= lambda _: self.close_banner()),
+        ],
+        )
+        self.banner_error = ft.Banner(
+            bgcolor=ft.LinearGradient(
+                begin=ft.alignment.top_left,
+                colors=[
+                    "0xff1f005c",
+                    "0xff5b0060",
+                    "0xff870160",
+                    "0xffac255e",
+                    "0xffca485c",
+                    "0xffe16b5c",
+                    "0xfff39060",
+                    "0xffffb56b",
+                ],
+                tile_mode=ft.GradientTileMode.MIRROR,
+            ),
+            leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
+            content=ft.Text("el usuario o la contraseña son incorrectos", size=30, text_align='center'),
+            actions=[
+            ft.TextButton("OK", on_click= lambda _: self.close_banner()),
+        ],
+        )
+    def close_banner(self):
+        self.page.banner.open = False
+        self.page.update()
+    def open_banner(self, banner):
+        if banner == 'error':
+            self.page.banner = self.banner_error
+        else:
+            self.page.banner = self.banner_fine
+        self.page.banner.open = True
+        self.page.update()
+    def auth(self, page:ft.Page):
         """autentificacion para el enrutamiento del inicio de sesion"""
 
         conx = DbConnector(config=CONFIG)
         ctrl = ControlUsuarios(conx)
-        if ctrl.auth_user(user,passw):
-            page.go(DIRECCIONES['inventario'])
-            print(user)
-
-    
-    def auth2(self):
-        """autentificacion para el enrutamiento del inicio de sesion"""
         user = self.entry_user.value
         passw = self.entry_pass.value
-        conx = DbConnector(config=CONFIG)
-        ctrl = ControlUsuarios(conx)
-        if ctrl.auth_user(user,passw):
+        if ctrl.authenticate_user(user,passw):
+            self.entry_user.value = ''
+            self.entry_pass.value = ''
+            self.open_banner('aprovado')
+            sleep(3)
+            self.close_banner()
             page.go(DIRECCIONES['inventario'])
             print(user)
-    
-
-def auth(page:ft.Page, user, passw):
-    """autentificacion para el enrutamiento del inicio de sesion"""
-
-    conx = DbConnector(config=CONFIG)
-    ctrl = ControlUsuarios(conx)
-    if ctrl.auth_user(user,passw):
-        page.go(DIRECCIONES['inventario'])
-        print(user)
+        else:
+            self.open_banner('error')
 
 
 

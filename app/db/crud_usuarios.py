@@ -1,16 +1,15 @@
 """Modulo que encripta la contraseña"""
 from math import perm
 import bcrypt
-from db_connector import DBConnector
+from db.db_connector import DbConnector
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
-import permisos
-
+import db.permisos
+from utils.globals import CONFIG
 
 
 # Crea el motor de SQLAlchemy
-engine = create_engine(
-    'mysql://root:1234@127.0.0.1:3306/dbferreteria')
+engine = create_engine(CONFIG)
 
 # Crea una instancia de automap_base
 Base = automap_base()
@@ -43,10 +42,10 @@ class ControlUsuarios:
         """crea un usuario"""
         usuario = self.encontrar_usuario(username)
         if not usuario:
-            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())#yosnel que hace esta mierda desencripta o encripta
+            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) #yosnel que hace esta mierda desencripta o encripta
             nuevo_usuario = Usuario(username=username,
-                              contrasena=hashed.decode('utf-8'),
-                              Rol=rol_nombre)
+                            contrasena=hashed.decode('utf-8'),
+                            Rol=rol_nombre)
             
             self.db_connector.session.add(nuevo_usuario)
             self.db_connector.session.commit()
@@ -120,24 +119,24 @@ class ControlUsuarios:
 
 
 # Configuración de la base de datos
-CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
-conexion = DBConnector(CONFIG)
+if __name__ == '__main__':
+    conexion = DBConnector(CONFIG)
 
-Base.metadata.create_all(conexion.engine)
+    Base.metadata.create_all(conexion.engine)
 
-control_usuarios = ControlUsuarios(conexion)
+    control_usuarios = ControlUsuarios(conexion)
 
-print("prueba de  crear usuarios :")
-username="azael"
-password="1234"
+    print("prueba de  crear usuarios :")
+    username="azael"
+    password="1234"
 
-usuario_creador = control_usuarios.encontrar_usuario(username)
+    #suario_creador = control_usuarios.encontrar_usuario(username)
 
-control_usuarios.delete_user(usuario_creador,'nuevo_usuario4')
+    #control_usuarios.delete_user(usuario_creador,'nuevo_usuario4')
 
-# control_usuarios.reset_password(usuario_creador,'nuevo_usuario', '1234')
+    # control_usuarios.reset_password(usuario_creador,'nuevo_usuario', '1234')
 
-# control_usuarios.create_user(usuario_creador, 'nuevo_usuario4', 'contraseña1234', 'empleado')
+    # control_usuarios.create_user(usuario_creador, 'nuevo_usuario4', 'contraseña1234', 'empleado')
 
 # Observacion   hay que hacer una autenticacion tambien para contrasenia ya que se pueden crear dos usuarios con contrasenias iguales
 

@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 class DbConnector:
-    """clase que crea y cierra la contraseña"""
+    """clase que crea y cierra la Conexion"""
 
     def __init__(self, config):
         self.engine = create_engine(config)
@@ -12,6 +12,6 @@ class DbConnector:
         self.session = session()
 
     def close_session(self):
-        """cierra la contraseña"""
+        """cierra la Conexion """
         if self.session:
             self.session.close()

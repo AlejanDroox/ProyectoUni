@@ -2,7 +2,7 @@
 procesos de la ventana 'procesos', valga la redundancia"""
 from time import sleep
 import flet as ft
-from utils.globals import user_actual
+from utils.globals import user_actual, DIRECCIONES
 # region clases
 class Producto():
     """Crea la estructura visual de cada producto"""
@@ -228,6 +228,11 @@ def tab_edit(producto:Producto) -> ft.Container:
 # pylint: disable=unused-argument
 def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
     """devuelve la estructura del menu lateral (drawer)"""
+    btn_close = ft.TextButton(
+        text='Salir',
+        icon=ft.icons.EXIT_TO_APP,
+        on_click= lambda _: page.go(DIRECCIONES['inicio'])
+    )
     drawer = ft.NavigationDrawer(
         controls=[
             ft.Container(height=12),
@@ -256,6 +261,12 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
                 icon_content=ft.Icon(ft.icons.BACKUP_OUTLINED),
                 label="BACKUP",
                 selected_icon=ft.icons.BACKUP          
+            ),
+            ft.Divider(thickness=2),
+            ft.Container(
+                padding=ft.padding.only(top=550),
+                content= btn_close,
+                alignment=ft.alignment.bottom_center
             ),
         ],
         on_change=hola
