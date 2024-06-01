@@ -2,6 +2,7 @@
 import flet as ft
 from views.procesos import Inventario, menu_lateral
 from views.iniciosesion import InicioSesion
+from views.panel_control import Panel_Control
 from utils.globals import DIRECCIONES, show_drawer
 
 def main(page: ft.Page):
@@ -78,6 +79,17 @@ def main(page: ft.Page):
                     drawer=menu_lateral(page=page)
                 )
             )
+        elif page.route == DIRECCIONES['panel']:
+            page.views.append(
+                ft.View(
+                    DIRECCIONES['panel'],
+                    [
+                        ft.AppBar(title=ft.Text("Panel De Control"), bgcolor=ft.colors.SURFACE_VARIANT),
+                        Panel_Control()
+                    ],
+                    drawer=menu_lateral(page=page)
+                )
+            )
 
         page.update()
     # pylint: disable=unused-argument
@@ -97,8 +109,8 @@ def main(page: ft.Page):
     page.horizontal_alignment = 'CENTER'
     page.on_route_change = cambio
     page.on_view_pop = view_pop
-
-    page.go(page.route)
+    page.go(DIRECCIONES['panel'])
+    #page.go(page.route)
     page.add()
     page.title = 'Ferreteria no sea sapo'
 

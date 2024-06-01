@@ -6,7 +6,8 @@ DIRECCIONES= {
     'inventario': '/app/procesos',
     'reporte': '/app/reportes',
     'ayuda': '/app/ayuda',
-    'archivos': '/app/archivos'
+    'archivos': '/app/archivos',
+    'panel': '/app/panel_control',
 }
 """Direcciones de enrutamiento para flet"""
 
@@ -22,14 +23,16 @@ class User():
         return self.__rol
 
 class ControlSesion():
-    def agg_sesion(self):
-        
-
-
-
+    """Agrega y elimina la instancia de la sesion actual"""
+    def agg_sesion(self, sesion:User):
+        self.sesion = sesion
+    def dell_sesion(self):
+        del self.sesion
 def show_drawer(e):
     """mostrar menu lateral"""
     e.page.views[-1].drawer.open = True
     e.page.views[-1].update()
 
+
+ctrl_sesion = ControlSesion()
 # End-of-file (EOF)
