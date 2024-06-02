@@ -71,8 +71,7 @@ class Panel_Control(ft.Container):
                         width=650,
                         height=215
                     )
-                ],
-            expand=8
+                ]
             ),
             padding=ft.padding.only(left=35, top=10),
             width=735,
