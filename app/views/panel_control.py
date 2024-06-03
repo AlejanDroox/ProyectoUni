@@ -91,7 +91,6 @@ class Panel_alerts(ft.AlertDialog):
         'bgcolor': 'white',
         
     }
-    STYLE_TITLE 
     def __init__(self):
         super().__init__()
 
