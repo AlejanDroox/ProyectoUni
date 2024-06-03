@@ -2,7 +2,7 @@
 procesos de la ventana 'procesos', valga la redundancia"""
 from time import sleep
 import flet as ft
-from utils.globals import user_actual, DIRECCIONES, CONFIG
+from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
 from db.crud_productos import ControlProductos
 # region clases
@@ -66,8 +66,8 @@ class Producto():
     def btn_editar(self):
         """es prueba, se supone que comprobara el nivel de usuario y
         habilitara o deshabilitara el boton de editar"""
-        if user_actual.rol > 0:
-            self.contenido.controls.append(self.boton_editar)
+
+        self.contenido.controls.append(self.boton_editar)
 
     def tab_go(self):
         """Vuelve visible el tab de la ediccion, hace una pause

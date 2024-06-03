@@ -23,7 +23,7 @@ class User():
 
 class ControlSesion():
     def agg_sesion(self):
-        
+        pass
 
 
 
