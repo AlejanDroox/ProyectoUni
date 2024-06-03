@@ -86,14 +86,37 @@ class Panel_Control(ft.Container):
             vertical_alignment=ft.CrossAxisAlignment.START
         )
 
-class btn_acciones_permisos(ft.Container):
+class Panel_alerts(ft.AlertDialog):
+    STYLE_ALERT = {
+        'bgcolor': 'white',
+        
+    }
+    STYLE_TITLE 
     def __init__(self):
         super().__init__()
-        self.contenido()
-    def contenido(self):
-        icon = ft.ic
-        self.content = ft.Row(
-            [
 
+    def alert_agg(self):
+        title = ft.Text("Agregar Usuario", size=48, weight=ft.FontWeight.W_900, selectable=True)
+        entry_user = ft.TextField(label='Nombre')
+        multi_select = ft.Dropdown(
+            width=160,
+            options=[
+                ft.dropdown.Option("Red"),
+                ft.dropdown.Option("Green"),
+                ft.dropdown.Option("Blue"),
+            ],
+        )
+        body = ft.Container(
+            [
+                ft.Column(
+                    [
+                        title, 
+                        ft.Row(
+                            [
+                                entry_user, 
+                            ]
+                        )
+                    ]
+                )
             ]
         )
