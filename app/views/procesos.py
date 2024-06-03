@@ -168,7 +168,7 @@ class Inventario(ft.Tabs):
     def cargar_productos(self,cont):
         for i in range(7):
             algo = Producto(n_producto=ferreteria_nombres[i],marca='Generica',
-            des=ferreteria_descripciones[i],existencia=i+2, page=self.page, id_producto=i+1, tab=self.tabs)
+            des=ferreteria_descripciones[i],existencia=i+2, page=self.page, id_producto=i+1, tab=self)
             cont.agg_card(producto=algo)
         print('s')
 
