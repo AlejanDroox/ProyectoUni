@@ -85,7 +85,7 @@ def main(page: ft.Page):
                     DIRECCIONES['panel'],
                     [
                         ft.AppBar(title=ft.Text("Panel De Control"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        Panel_Control()
+                        Panel_Control(page=page)
                     ],
                     drawer=menu_lateral(page=page)
                 )
