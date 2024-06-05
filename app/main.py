@@ -109,8 +109,8 @@ def main(page: ft.Page):
     page.horizontal_alignment = 'CENTER'
     page.on_route_change = cambio
     page.on_view_pop = view_pop
-    page.go(DIRECCIONES['panel'])
-    #page.go(page.route)
+    #page.go(DIRECCIONES['panel'])
+    page.go(page.route)
     page.add()
     page.title = 'Ferreteria no sea sapo'
 
