@@ -17,10 +17,10 @@ class User():
     """Solo contiene el rol y el nombre es para pruebas"""
     def __init__(self, user, rol):
         self.user = user
-        self.__rol = rol
+        self.rol = rol
     def get_rol(self):
         """retorna el rol por ahora yo mismo lo defino """
-        return self.__rol
+        return self.rol
 
 class ControlSesion():
     """Agrega y elimina la instancia de la sesion actual"""
@@ -33,6 +33,6 @@ def show_drawer(e):
     e.page.views[-1].drawer.open = True
     e.page.views[-1].update()
 
-
+user = User('azael', 'administrador')
 ctrl_sesion = ControlSesion()
 # End-of-file (EOF)

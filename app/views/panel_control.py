@@ -1,7 +1,8 @@
 import flet as ft
-from utils.globals import User
+from utils.globals import user, CONFIG
 from db.permisos import PERMISOS
-user = User('juan', 'administrador')
+from db.db_connector import DbConnector
+from db.crud_usuarios import ControlUsuarios
 CONTAINER_STYLE_1 = {
     'bgcolor': '#949494',
     'border_radius': 5
@@ -12,11 +13,14 @@ CONTAINER_STYLE_2 = {
 }
 
 class Panel_Control(ft.Container):
+    """Usando un continer creo un widget visual unico para el panel de control
+    el cual posea tanto frotend y el backed del mismo, """
     def __init__(self, page:ft.Page):
         super().__init__()
         self.page = page
         self.user = user
-        self.alert_dialog = Panel_alerts(page= page)
+        self.conx = DbConnector(CONFIG)
+        self.alert_dialog = Panel_alerts(page= page, conx=self.conx)
         self.contenido()
         self.padding = ft.padding.only(top=50)
         self.alignment = ft.alignment.top_center
@@ -94,33 +98,43 @@ class Panel_Control(ft.Container):
         self.alert_dialog.open = True
         self.page.update()
 class Panel_alerts(ft.AlertDialog):
+    """Un controlador de los distintos alertdialog que necesarios, crea todos los 
+    alert dialog los guarda en una variable y segun se necesite el contenido del alert
+    dialog sera uno u otro. tambien posee el backend de los mismos"""
     STYLE_ALERT = {
         'bgcolor': 'white',
         
     }
-    def __init__(self, page:ft.Page):
+    def __init__(self, page:ft.Page, conx):
         super().__init__()
+        self.crtl_user = ControlUsuarios(conx)
         self.page = page
         self.alert_agg()
+    
     def alert_agg(self):
+        """Crea el alert Dialog de agregar usuario"""
         def mostrar_pass(btn:ft.IconButton, entry: ft.TextField):
             btn.selected = not btn.selected
             entry.password = not entry.password
             btn.page.update()
-        
+        def aceptar():
+            new_user = entry_user.value
+            passw = entry_pass.value
+            rol = multi_select.value
+            self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol)
         title = ft.Text("Agregar Usuario", size=48, weight=ft.FontWeight.W_900, selectable=True)
         entry_user = ft.TextField(label='Nombre', width=240)
         entry_pass = ft.TextField(label='Contraseña', password=True, width=240)
         btn_pass = ft.IconButton(icon=ft.icons.REMOVE_RED_EYE, selected_icon=ft.icons.REMOVE_RED_EYE_OUTLINED, on_click= lambda _: mostrar_pass(btn_pass, entry_pass))
-        btn_aceptar = ft.TextButton(text='Aceptar')
-        btn_cancelar = ft.TextButton(text='Cancelar')
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
         multi_select = ft.Dropdown(
             label= 'Rol',
             width=160,
             options= [
-                ft.dropdown.Option("Administrador"),
-                ft.dropdown.Option("Gerente"),
-                ft.dropdown.Option("Empleado")
+                ft.dropdown.Option("administrador"),
+                ft.dropdown.Option("gerente"),
+                ft.dropdown.Option("empleado")
             ], padding=ft.padding.only(left=27)
         )
         self.widgt_agg = [entry_user,entry_pass, btn_aceptar, btn_cancelar]
@@ -156,6 +170,11 @@ class Panel_alerts(ft.AlertDialog):
                     width=512,
                     height=408,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER
-                )
+            )
 
         self.content = body
+    def close(self):
+        for i in self.widgt_agg:
+            i.value = ''
+        self.open = False
+        self.page.update()
