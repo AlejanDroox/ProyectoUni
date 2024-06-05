@@ -4,7 +4,7 @@ import bcrypt
 from db.db_connector import DbConnector
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
-import db.permisos
+from db import permisos
 from utils.globals import CONFIG
 
 
@@ -35,10 +35,10 @@ class ControlUsuarios:
 # Inicio Create User
     def create_user(self, usuario_creador, username, password, rol_nombre):
         # Verificar si el usuario_creador puede crear un usuario
-        if not permisos.crear_admin(usuario_creador.Rol):
+        if permisos.crear_admin(usuario_creador=usuario_creador.rol):
             print("No tienes permisos para crear usuarios.")
+            #raise NotPermisos
             return False
-        
         """crea un usuario"""
         usuario = self.encontrar_usuario(username)
         if not usuario:

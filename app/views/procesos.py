@@ -172,59 +172,6 @@ class Inventario(ft.Tabs):
             cont.agg_card(producto=algo)
         print('s')
 
-def inventario(page: ft.Page) -> ft.Tabs():
-    """crea y devuelve la estructura de la ventana procesos"""
-    contenedor_productos = LineaProductos()  # Create an instance of the LineaProductos class
-    tab1 = ft.Container(
-        ft.Row([
-            ft.Column([
-                ft.Container(
-                    content=contenedor_productos.contenido,
-                    border=ft.border.all(),
-                    padding=ft.padding.only(left=50)
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-            ),
-        ],
-        alignment=ft.MainAxisAlignment.SPACE_EVENLY,
-    ),
-    border=ft.border.all(),
-    )
-    body = ft.Tabs(
-        selected_index=0,
-        animation_duration=300,
-        tabs=[
-            ft.Tab(
-                text="EDIT",
-                content=ft.Text('edit'),
-                icon=ft.icons.EDIT_SQUARE,
-                visible= False
-            ),
-            ft.Tab(
-                text="inventario",
-                content=tab1,
-                icon=ft.icons.INVENTORY
-            ),
-            ft.Tab(
-                tab_content=ft.Icon(ft.icons.SEARCH),
-                content=ft.Text("This is Tab 2"),
-            ),
-            ft.Tab(
-                text="Tab 3",
-                icon=ft.icons.SETTINGS,
-                content=ft.Text("This is Tab 3"),
-            ),
-        ],
-    )
-    ctrl_bd = DbConnector(CONFIG)
-    ctrl_p = ControlProductos(ctrl_bd)
-
-    for i in range(20):
-        algo = Producto(n_producto=ferreteria_nombres[i],marca='Generica',
-        des=ferreteria_descripciones[i],existencia=i+2, page=page, id_producto=i+1, tab=body)
-        contenedor_productos.agg_card(producto=algo)
-    return body
 
 def tab_edit(producto:Producto) -> ft.Container:
     """tab de edicion de productos"""
@@ -324,8 +271,14 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
                 selected_icon=ft.icons.BACKUP          
             ),
             ft.Divider(thickness=2),
+            ft.NavigationDrawerDestination(
+                icon_content=ft.Icon(ft.icons.ADMIN_PANEL_SETTINGS_OUTLINED),
+                label="Panel Control",
+                selected_icon=ft.icons.ADMIN_PANEL_SETTINGS
+            ),
+            ft.Divider(thickness=2),
             ft.Container(
-                padding=ft.padding.only(top=550),
+                padding=ft.padding.only(top=450),
                 content= btn_close,
                 alignment=ft.alignment.bottom_center
             ),
@@ -337,7 +290,9 @@ iconosBarra = {
     '0': '/app/procesos',
     '1': '/app/archivos',
     '2': '/app/reportes',
-    '3': '/app/ayuda'
+    '3': '/app/ayuda',
+    '4': '/app/ayuda',
+    '5': '/app/panel_control',
 }
 def hola(e:ft.ContainerTapEvent):
     """funcion de prueba solo se llama en cualquier cambio del menu lateral"""

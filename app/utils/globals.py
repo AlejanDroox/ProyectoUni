@@ -6,7 +6,8 @@ DIRECCIONES= {
     'inventario': '/app/procesos',
     'reporte': '/app/reportes',
     'ayuda': '/app/ayuda',
-    'archivos': '/app/archivos'
+    'archivos': '/app/archivos',
+    'panel': '/app/panel_control',
 }
 """Direcciones de enrutamiento para flet"""
 
@@ -16,20 +17,22 @@ class User():
     """Solo contiene el rol y el nombre es para pruebas"""
     def __init__(self, user, rol):
         self.user = user
-        self.__rol = rol
+        self.rol = rol
     def get_rol(self):
         """retorna el rol por ahora yo mismo lo defino """
-        return self.__rol
+        return self.rol
 
 class ControlSesion():
-    def agg_sesion(self):
-        pass
-
-
-
+    """Agrega y elimina la instancia de la sesion actual"""
+    def agg_sesion(self, sesion:User):
+        self.sesion = sesion
+    def dell_sesion(self):
+        del self.sesion
 def show_drawer(e):
     """mostrar menu lateral"""
     e.page.views[-1].drawer.open = True
     e.page.views[-1].update()
 
+user = User('azael', 'administrador')
+ctrl_sesion = ControlSesion()
 # End-of-file (EOF)
