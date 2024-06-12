@@ -4,11 +4,12 @@ from views.procesos import Inventario, menu_lateral
 from views.iniciosesion import InicioSesion
 from views.panel_control import Panel_Control
 from utils.globals import DIRECCIONES, show_drawer
-
+from views.pruebas import BODY_PRUEBAS
 def main(page: ft.Page):
     """funcion principal"""
-    page.theme = ft.Theme(color_scheme_seed="blue")# cambiar los colores oir lo
+
     body_inicio = InicioSesion(page)
+    menu = menu_lateral(page=page)
     def cambio(e):
         page.views.clear()
         page.views.append(
@@ -24,7 +25,7 @@ def main(page: ft.Page):
                     controls= [ft.AppBar(title=ft.Text("Procesos"),
                         bgcolor=ft.colors.SURFACE_VARIANT),
                         Inventario(page=page)],
-                    drawer=menu_lateral(page=page)
+                    drawer=menu
                 )
             )
         elif page.route == "/app/ayuda":
@@ -37,7 +38,7 @@ def main(page: ft.Page):
                         on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=menu_lateral(page=page)
+                    drawer=menu
                 )
             )
         elif page.route == "/app/p":
@@ -50,7 +51,7 @@ def main(page: ft.Page):
                         on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=menu_lateral(page=page)
+                    drawer=menu
                 )
             )
         elif page.route == "/app/reportes":
@@ -63,7 +64,7 @@ def main(page: ft.Page):
                         on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=menu_lateral(page=page)
+                    drawer=menu
                 )
             )
         elif page.route == "/app/archivos":
@@ -76,7 +77,7 @@ def main(page: ft.Page):
                         on_click=lambda _: page.go(DIRECCIONES['inventario'])),
                         ft.ElevatedButton("Menu", on_click=show_drawer),
                     ],
-                    drawer=menu_lateral(page=page)
+                    drawer=menu
                 )
             )
         elif page.route == DIRECCIONES['panel']:
@@ -87,7 +88,18 @@ def main(page: ft.Page):
                         ft.AppBar(title=ft.Text("Panel De Control"), bgcolor=ft.colors.SURFACE_VARIANT),
                         Panel_Control(page=page)
                     ],
-                    drawer=menu_lateral(page=page)
+                    drawer=menu
+                )
+            )
+        elif page.route == DIRECCIONES['pruebas']:
+            page.views.append(
+                ft.View(
+                    DIRECCIONES['pruebas'],
+                    [
+                        ft.AppBar(title=ft.Text("Zona de pruebas visuales"), bgcolor=ft.colors.SURFACE_VARIANT),
+                        BODY_PRUEBAS
+                    ],
+                    drawer=menu
                 )
             )
 
@@ -113,7 +125,7 @@ def main(page: ft.Page):
     page.go(page.route)
     page.add()
     page.title = 'Ferreteria no sea sapo'
-
+    page.theme_mode ='light'
 
 
 if __name__ == '__main__':
