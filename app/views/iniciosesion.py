@@ -29,7 +29,6 @@ class InicioSesion():
             border_radius= ft.border_radius.horizontal(left=10,right=30),
             label = 'Username',
             #hint_text='Cedula', es otra forma de poner el texto pero el de arriba me gusto mas
-            color= ft.colors.WHITE,
             prefix_icon=ft.icons.PEOPLE,
             #input_filter= ft.NumbersOnlyInputFilter(),
             text_vertical_align= -1.0
@@ -40,7 +39,6 @@ class InicioSesion():
                 border_radius= ft.border_radius.horizontal(left=10,right=30),
                 label = 'Contraseña',
                 #hint_text='Contraseña', es otra forma de poner el texto pero el de arriba me gusto mas
-                color= ft.colors.WHITE,
                 prefix_icon=ft.icons.PASSWORD, #el icono tambien podria ser lock
                 text_vertical_align= -1.0,
                 password= True,
@@ -71,8 +69,8 @@ class InicioSesion():
                                 ft.ElevatedButton(
                                     content=ft.Text(
                                         'ENTRAR',
-                                        color='white',
                                         weight='w500',
+                                        color='white'
                                     ),
                                     width=280,
                                     bgcolor='black',

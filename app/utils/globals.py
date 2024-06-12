@@ -8,11 +8,13 @@ DIRECCIONES= {
     'ayuda': '/app/ayuda',
     'archivos': '/app/archivos',
     'panel': '/app/panel_control',
+    'pruebas': 'pruebas'
 }
 """Direcciones de enrutamiento para flet"""
 
 CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
 """ Configuracion de conexion de Base de datos"""
+
 class User():
     """Solo contiene el rol y el nombre es para pruebas"""
     def __init__(self, user, rol):

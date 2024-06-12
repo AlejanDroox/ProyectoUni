@@ -5,7 +5,11 @@ import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
 from db.crud_productos import ControlProductos
-# region clases
+from jaro import jaro_winkler_metric
+
+ID_PRODUCTO = {}
+
+# region Inventario
 class Producto():
     """Crea la estructura visual de cada producto"""
     def __init__(self, n_producto:str,marca:str, des:str, existencia:int,
@@ -84,37 +88,83 @@ class Producto():
         """aqui se puede hacer la actualizacion o no se"""
         return self
 
-
+class ProductCard(ft.ExpansionPanel):
+    def __init__(self, image, name, description, characteristics, price, id):
+        super().__init__()
+        self.name = name
+        hed_content = ft.Container(
+            ft.Column(
+            [
+                ft.Image(src=image, width=230, height=200),
+                ft.Text(name),
+                ft.Text(description),
+            ],
+            alignment=ft.MainAxisAlignment.START,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+        ),
+        padding=ft.padding.only(bottom=10)
+        )
+        self.header = hed_content
+        self.content = ft.Column(
+            controls=[
+                ft.Text(f"ID: {id}"),
+                ft.Text("Características:"),
+                ft.Text("  - " + ", ".join(characteristics)),
+                ft.Text(f"Precio Venta: {price}"),
+                ft.Text(f"Precio Compra: {price}"),
+                ft.Text(f"EXistencias: 50"),
+                ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
+                ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
+            ],
+        )
 class LineaProductos():
     """Contiene las card generadas en la clase producto
     de manera ordenada y en scroll"""
     def __init__(self):
         self.lineas = []  # Initialize the lineas attribute as an empty list
         self.contenido = ft.Column(controls=self.lineas,
-                                alignment=ft.MainAxisAlignment.SPACE_EVENLY,
                                 scroll=ft.ScrollMode.ALWAYS,
-                                spacing=50,
-                                height=750,
-                                width=1200,)
-    def agg_card(self, producto:Producto):
+                                spacing=25,
+                                height=700,
+                                width=1150,)
+    def agg_card(self, producto):
         """agregar una nueva card de un producto"""
-        linea = ft.Row()
+        linea = ft.Row(alignment=ft.MainAxisAlignment.SPACE_EVENLY)
         try:
             cantidad = len(self.lineas[-1].controls)
-            if cantidad < 2:
-                self.lineas[-1].controls.append(producto.card)
+            if cantidad < 3:
+                self.lineas[-1].controls.append(producto)
             else:
-                linea.controls.append(producto.card)
+                linea.controls.append(producto)
                 linea.key = str(cantidad)
                 self.lineas.append(linea)
             #self.lineas[-1].controls.append(producto.card)
         except IndexError:
-            linea.controls.append(producto.card)
+            linea.controls.append(producto)
             linea.key = '0'
             self.lineas.append(linea)
-
-#region funciones de dibujo
+    def search(self, serch):
+        if len(serch) >= 1:
+            for i in self.lineas:
+                for p in i.controls:
+                    name = p.controls[0].name
+                    for n in name.split():
+                        similitud = jaro_winkler_metric(serch.lower(), n.lower())
+                        if similitud > 0.70:
+                            print(similitud)
+                            print(n)
+                            p.visible = True
+                            print(p.visible)
+                        else:
+                            p.visible = False
+                        p.update()
+        elif serch == '':
+            for i in self.lineas:
+                for p in i.controls:
+                    p.visible = True
+                    p.update()
 class Inventario(ft.Tabs):
+
     def __init__(self, page):
         super().__init__()
         self.page = page
@@ -122,22 +172,37 @@ class Inventario(ft.Tabs):
         self.selected_index = 0
         self.animation_duration = 400
     def contenido(self):
-        contenedor_productos = LineaProductos()
+        self.entry_search = ft.TextField(
+            label='Nombre el Producto',
+            icon=ft.icons.SEARCH,
+            on_change= lambda _: self.contenedor_productos.search(self.entry_search.value),
+        )
+        btn_create = ft.TextButton(
+            text='agregar producto',
+            icon=ft.icons.CREATE,
+        )
+        self.contenedor_productos = LineaProductos()
         tab_inventario = ft.Container(
             ft.Row([
-                ft.Column([
-                    ft.Container(
-                        content=contenedor_productos.contenido,
-                        border=ft.border.all(),
-                        padding=ft.padding.only(left=70)
-                    ),
-                ],
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                self.entry_search, btn_create
+                            ]
+                        ),
+                        ft.Container(
+                            content=self.contenedor_productos.contenido,
+                            border=ft.border.all(color='#BABABA', width=2.5),
+                            bgcolor='#D9D9D9',
+                            border_radius=18
+                        ),
+                    ],
                 alignment=ft.MainAxisAlignment.SPACE_EVENLY,
                 ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
             ),
-            border=ft.border.all(),
         )
         self.tabs=[
             ft.Tab(
@@ -163,16 +228,42 @@ class Inventario(ft.Tabs):
             
         ]
         self.expand=1
-        self.cargar_productos(contenedor_productos)
+        self.cargar_productos(self.contenedor_productos)
 
     def cargar_productos(self,cont):
-        for i in range(7):
-            algo = Producto(n_producto=ferreteria_nombres[i],marca='Generica',
-            des=ferreteria_descripciones[i],existencia=i+2, page=self.page, id_producto=i+1, tab=self)
-            cont.agg_card(producto=algo)
-        print('s')
+        for i in range(18):
+            product_card = ProductCard(
+                image="app/assets/XDt.jpeg",
+                name=ferreteria_nombres[i],
+                description= ferreteria_descripciones[i], 
+                characteristics=['bueno', 'bonito', 'barato'], 
+                price=i,
+                id=i)
+            ID_PRODUCTO[ferreteria_nombres[i]] = str(i)
+            panel = ft.ExpansionPanelList(
+                expand_icon_color=ft.colors.AMBER,
+                elevation=8,
+                divider_color=ft.colors.AMBER,
+                width=300,
+                controls= [product_card],
+                
+            )
+            cont.agg_card(panel)
+            self.page.update()
+
+    def search(self):
+        try:
+            key = '8'
+            print(type(key))
+            self.contenedor_productos.contenido.scroll_to(key='1', duration=100, offset=1)
+            self.page.update()
+        except  KeyError:
+            pass
 
 
+#region RegistroVentas
+
+#region otros
 def tab_edit(producto:Producto) -> ft.Container:
     """tab de edicion de productos"""
     def edit(e):
