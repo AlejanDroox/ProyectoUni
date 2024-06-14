@@ -7,91 +7,26 @@ from db.db_connector import DbConnector
 from db.crud_productos import ControlProductos
 from jaro import jaro_winkler_metric
 
-ID_PRODUCTO = {}
-
+name_product = {}
+"""Contendra todos los productos en formato
+Nombre: ProductCard"""
+mini_cards = []
 # region Inventario
-class Producto():
-    """Crea la estructura visual de cada producto"""
-    def __init__(self, n_producto:str,marca:str, des:str, existencia:int,
-                page:ft.Page, id_producto:int, tab:ft.Tabs):
-        self.page = page
-        self.tab = tab
-        self.n_producto = n_producto
-        self.marca = marca
-        self.des = des
-        self.id_producto = id_producto
-        self.existencia = existencia
-        self.nombre_compuesto = ft.Text(value=f'{self.n_producto} {self.marca}\n{self.des}',
-                                        overflow=ft.TextOverflow.CLIP,
-                                        width=200, max_lines=3)
-        self.cont_nombre = ft.Container(ft.Column([
-                                        ft.Text(value=f'ID: {id_producto}'),
-                                        self.nombre_compuesto,
-                                        ]),padding=ft.padding.only(bottom=100),
-                                        )
-        self.boton_editar = ft.Container(ft.IconButton(ft.icons.EDIT,
-                                        on_click=lambda _:self.tab_go()),
-                                    padding=ft.padding.only(bottom=125))
-        self.text_existencia =  ft.Text(value=self.existencia)
-        self.imagen = ft.Image(
-                            src="https://picsum.photos/300/200",
-                            width=250,
-                            height= 150,
-                            fit=ft.ImageFit.COVER,
-                            border_radius=8
-                        )
-        self.contenido = ft.Row([
-                        self.imagen,
-                        self.cont_nombre,
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_AROUND)
-        self.btn_editar()
-        self.card = ft.Card(
-            content=ft.Container(
-                content=ft.Column([
-                    ft.Container(
-                        content= self.contenido,
-                        padding=ft.padding.only(15,10),
-                        #border=ft.border.all()
-                        ),
-                ],
-                ),
-                width=525,
-                height=225,
-                #on_hover=lambda _: self.hover()
-            ),
-        )
-
-    def update_edit(self):
-        """actualiza la parte visual de la card del producto"""
-        self.nombre_compuesto.value = f'{self.n_producto} {self.marca}\n{self.des}'
-        self.page.update()
-
-    def btn_editar(self):
-        """es prueba, se supone que comprobara el nivel de usuario y
-        habilitara o deshabilitara el boton de editar"""
-
-        self.contenido.controls.append(self.boton_editar)
-
-    def tab_go(self):
-        """Vuelve visible el tab de la ediccion, hace una pause
-        para luego hacer animacon de traslasion"""
-        self.tab.tabs[0].visible = True
-        self.tab.selected_index = 1
-        self.page.update()
-        self.tab.tabs[0].content = tab_edit(self)
-        self.tab.selected_index = 0
-        sleep(0.2)
-        self.page.update()
-
-    def actualizar_bd(self):
-        """aqui se puede hacer la actualizacion o no se"""
-        return self
-
 class ProductCard(ft.ExpansionPanel):
     def __init__(self, image, name, description, characteristics, price, id):
         super().__init__()
         self.name = name
+        self.image = image
+        self.id = id
+        self.mini_card = ft.Container(
+            content=ft.Column(
+                [
+                    ft.Image(src=image, width=230, height=200),
+                    ft.Text(name),
+                    ft.Text(description)
+                ]
+            )
+        )
         hed_content = ft.Container(
             ft.Column(
             [
@@ -117,6 +52,27 @@ class ProductCard(ft.ExpansionPanel):
                 ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
             ],
         )
+class MiniCard(ft.Container):
+    def __init__(self, name, image, id, price, cantidad):
+        super().__init__()
+        self.name = name
+        self.image = image
+        self.id = id
+        self.price = price
+        self.existencia = cantidad
+        self.content=ft.Column(
+                [
+                    ft.Image(src=image, width=230, height=200),
+                    ft.Text(value=f'{name}  precio:{price}'),
+                    ft.Text(value=f'Disponibles {cantidad}', text_align='center'),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            )
+        self.visible = False
+        self.bgcolor = '#D3D3D3'
+        self.border_radius = 18
+        self.height = 275
 class LineaProductos():
     """Contiene las card generadas en la clase producto
     de manera ordenada y en scroll"""
@@ -151,12 +107,11 @@ class LineaProductos():
                     for n in name.split():
                         similitud = jaro_winkler_metric(serch.lower(), n.lower())
                         if similitud > 0.70:
-                            print(similitud)
-                            print(n)
                             p.visible = True
                             print(p.visible)
-                        else:
-                            p.visible = False
+                            p.update()
+                            break
+                        p.visible = False
                         p.update()
         elif serch == '':
             for i in self.lineas:
@@ -204,6 +159,7 @@ class Inventario(ft.Tabs):
             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
             ),
         )
+        self.registro_ventas = RegistroVenta()
         self.tabs=[
             ft.Tab(
                 text="EDIT",
@@ -218,7 +174,8 @@ class Inventario(ft.Tabs):
             ),
             ft.Tab(
                 tab_content=ft.Icon(ft.icons.SEARCH),
-                content=ft.Text("This is Tab 2"),
+                content=self.registro_ventas,
+
             ),
             ft.Tab(
                 text="Tab 3",
@@ -239,7 +196,6 @@ class Inventario(ft.Tabs):
                 characteristics=['bueno', 'bonito', 'barato'], 
                 price=i,
                 id=i)
-            ID_PRODUCTO[ferreteria_nombres[i]] = str(i)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
                 elevation=8,
@@ -248,6 +204,10 @@ class Inventario(ft.Tabs):
                 controls= [product_card],
                 
             )
+            minicard = MiniCard(image='app/assets/XDt.jpeg', name= ferreteria_nombres[i], id=id, price = i, cantidad=50)
+            self.registro_ventas.products.append(minicard)
+            minicard.on_click = self.registro_ventas.select
+            name_product[product_card.name] = product_card
             cont.agg_card(panel)
             self.page.update()
 
@@ -261,10 +221,178 @@ class Inventario(ft.Tabs):
             pass
 
 
+class Panel_alerts(ft.AlertDialog):
+    """Un controlador de los distintos alertdialog que necesarios, crea todos los 
+    alert dialog los guarda en una variable y segun se necesite el contenido del alert
+    dialog sera uno u otro. tambien posee el backend de los mismos"""
+    STYLE_ALERT = {
+        'bgcolor': 'white',  
+    }
+    def __init__(self, page:ft.Page, conx):
+        super().__init__()
+        self.crtl_user = ControlUsuarios(conx)
+        self.page = page
+        self.draw_alerts()
+        self.alerts = {
+            'agg': self.alert_agg,
+            'dell': self.alert_dell,
+            'edit': self.alert_edit,
+        }
+    
+    def draw_alerts(self):
+        self.draw_alert_agg()
+        self.draw_alert_dell()
+        self.draw_alert_edit()
+    
+    def change_alert(self, alert_name):
+        self.content = self.alerts[alert_name]
+    
+    def draw_alert_agg(self):
+        """Crea el alert Dialog de agregar usuario"""
+        def mostrar_pass(btn:ft.IconButton, entry: ft.TextField):
+            btn.selected = not btn.selected
+            entry.password = not entry.password
+            btn.page.update()
+        def aceptar():
+            new_user = entry_user.value
+            passw = entry_pass.value
+            rol = multi_select.value
+            self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol)
+        title = ft.Text("Editar ", size=48, weight=ft.FontWeight.W_900)
+        entry_user = ft.TextField(label='Nombre', width=240)
+        entry_marca = ft.TextField(label='Marca', width=240)
+        entry_descripcion = ft.TextField(label='descripcion', width=240)
+        btn_pass = ft.IconButton(icon=ft.icons.REMOVE_RED_EYE, selected_icon=ft.icons.REMOVE_RED_EYE_OUTLINED, on_click= lambda _: mostrar_pass(btn_pass, entry_pass))
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
+        multi_select = ft.Dropdown(
+            label= 'Proevedor',
+            width=160,
+            options= [
+                ft.dropdown.Option("administrador"),
+                ft.dropdown.Option("gerente"),
+                ft.dropdown.Option("empleado")
+            ], padding=ft.padding.only(left=27)
+        )
+        self.widgt_agg = [entry_user,entry_pass, btn_aceptar, btn_cancelar]
+        body = ft.Column(
+                    [
+                        title, 
+                        ft.Container(
+                            ft.Row(
+                                [
+                                    entry_user, multi_select
+                                ],
+                                alignment=ft.MainAxisAlignment.START
+                            ),
+                            padding=ft.padding.only(left=45, top=23, right=27)
+                        ),
+                        ft.Container(
+                            ft.Row(
+                                [
+                                    entry_pass, btn_pass
+                                ],
+                                alignment=ft.MainAxisAlignment.START
+                            ),
+                            padding=ft.padding.only(left=45, top=35, bottom=55)
+                        ),
+                        ft.Row(
+                            [
+                                btn_cancelar, btn_aceptar
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                        ),
+                        
+                    ],
+                    width=512,
+                    height=408,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            )
+        self.alert_agg = body
 #region RegistroVentas
+class RegistroVenta(ft.Container):
+    def __init__(self):
+        super().__init__()
+        #self.border=ft.border.all(color='#BABABA', width=2.5)
+        self.products = []
+        self.products_mini = []
+        self.draw_contenido()
+    def draw_contenido(self):
+        title = ft.Text(
+            value='Registro De Ventas',
+            size=48,
+            weight=ft.FontWeight.W_900
+        )
+        entry_producto = ft.TextField(
+            label='Nombre Producto',
+            on_change = lambda _: self.search(entry_producto.value)
+        )
+        entry_cant = ft.TextField(
+            label='Cantidad',
+            width=60,
+            label_style={'size': 8},
+            input_filter=ft.NumbersOnlyInputFilter()
+        )
+        entry_ci_cliente = ft.TextField(
+            label='Cedula Cliente'
+        )
+        metodo_pago = ft.Dropdown(
+            label= 'Metodo de pago',
+            width=160,
+            options= [
+                ft.dropdown.Option("BS"),
+                ft.dropdown.Option("COP"),
+                ft.dropdown.Option("USD")
+            ]
+        )
+        
+        list_product = ft.Container(
+            content=ft.Column(controls=self.products,
+                                scroll=ft.ScrollMode.ALWAYS,
+                                spacing=25,
+            ),
+            height=350,
+            width=250,
+            #bgcolor='#D9D9D9'
+            )
+        body = ft.Column(
+            [
+                title,
+                ft.Row(
+                    [
+                        entry_producto, entry_cant, entry_ci_cliente
+                    ]
+                ),
+                ft.Row(
+                    [
+                        list_product, metodo_pago
+                    ]
+                )
+            ]
+        )
+        self.content = body
+    def search(self, search):
+        if len(search) >= 1:
+            for p in self.products:
+                name = p.name
+                for n in name.split():
+                    similitud = jaro_winkler_metric(search.lower(), n.lower())
+                    if similitud > 0.7:
+                        p.visible = True
+                        self.update()
+                        break
+                    p.visible = False
+                    self.update()
+        elif search == '':
+            for i in self.products:
+                i.visible = False
+                self.update()
+    def select(*self):
+        print(dir(self[1].control))
+
 
 #region otros
-def tab_edit(producto:Producto) -> ft.Container:
+def tab_edit(producto) -> ft.Container:
     """tab de edicion de productos"""
     def edit(e):
         if e.control.label == 'Marca':
