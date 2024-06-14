@@ -318,20 +318,40 @@ class RegistroVenta(ft.Container):
         self.products_mini = []
         self.draw_contenido()
     def draw_contenido(self):
+        def comprobar_cant(e):
+            control: ft.TextField = e.control
+            print(control.color)
+            for i in self.products:
+                if i.name == self.entry_producto.value:
+                    product_cant = i.existencia
+                    break
+            if control.value == '':
+                pass
+            elif int(control.value) > product_cant:
+                control.color = 'red'
+                control.tooltip = 'la cantidad ingresada es mayor a la cantidad disponible'
+            elif int(control.value) <= 0:
+                control.color = 'red'
+                control.tooltip = 'la cantidad no puede ser menor a 1'
+            else:
+                control.color = None
+            self.update()
         title = ft.Text(
             value='Registro De Ventas',
             size=48,
             weight=ft.FontWeight.W_900
         )
-        entry_producto = ft.TextField(
+        self.entry_producto = ft.TextField(
             label='Nombre Producto',
-            on_change = lambda _: self.search(entry_producto.value)
+            on_change = lambda _: self.search(self.entry_producto.value)
         )
-        entry_cant = ft.TextField(
+        self.entry_cant = ft.TextField(
             label='Cantidad',
             width=60,
             label_style={'size': 8},
-            input_filter=ft.NumbersOnlyInputFilter()
+            input_filter=ft.NumbersOnlyInputFilter(),
+            disabled=True,
+            on_change=comprobar_cant
         )
         entry_ci_cliente = ft.TextField(
             label='Cedula Cliente'
@@ -360,7 +380,7 @@ class RegistroVenta(ft.Container):
                 title,
                 ft.Row(
                     [
-                        entry_producto, entry_cant, entry_ci_cliente
+                        self.entry_producto, self.entry_cant, entry_ci_cliente
                     ]
                 ),
                 ft.Row(
@@ -388,8 +408,12 @@ class RegistroVenta(ft.Container):
                 i.visible = False
                 self.update()
     def select(*self):
-        print(dir(self[1].control))
-
+        product:MiniCard = self[1].control
+        self: RegistroVenta = self[0]
+        self.entry_producto.value = product.name
+        self.entry_producto.disabled = True
+        self.entry_cant.disabled = False
+        self.update()
 
 #region otros
 def tab_edit(producto) -> ft.Container:
