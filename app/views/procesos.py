@@ -320,7 +320,6 @@ class RegistroVenta(ft.Container):
     def draw_contenido(self):
         def comprobar_cant(e):
             control: ft.TextField = e.control
-            print(control.color)
             for i in self.products:
                 if i.name == self.entry_producto.value:
                     product_cant = i.existencia
@@ -330,12 +329,24 @@ class RegistroVenta(ft.Container):
             elif int(control.value) > product_cant:
                 control.color = 'red'
                 control.tooltip = 'la cantidad ingresada es mayor a la cantidad disponible'
+                self.btn_add.disabled = True
             elif int(control.value) <= 0:
                 control.color = 'red'
                 control.tooltip = 'la cantidad no puede ser menor a 1'
-            else:
+                self.btn_add.disabled = True
+            elif int(control.value) >= 1 and int(control.value) <= product_cant:
+                self.btn_add.disabled = False
                 control.color = None
             self.update()
+        
+        def add_product():
+            if self.entry_cant.color != 'red':
+                registro_product = f'- {self.entry_producto.value} : {self.entry_cant.value} \n'
+                self.actualizar_celda(0,2, registro_product)
+                self.entry_producto.value = ''
+                self.entry_producto.disabled = False
+                self.entry_cant.disabled = True
+                self.update()
         title = ft.Text(
             value='Registro De Ventas',
             size=48,
@@ -354,7 +365,9 @@ class RegistroVenta(ft.Container):
             on_change=comprobar_cant
         )
         entry_ci_cliente = ft.TextField(
-            label='Cedula Cliente'
+            label='Cedula Cliente',
+            input_filter=ft.NumbersOnlyInputFilter(),
+            on_change= lambda _: self.actualizar_celda(0, 1, entry_ci_cliente.value)
         )
         metodo_pago = ft.Dropdown(
             label= 'Metodo de pago',
@@ -363,9 +376,54 @@ class RegistroVenta(ft.Container):
                 ft.dropdown.Option("BS"),
                 ft.dropdown.Option("COP"),
                 ft.dropdown.Option("USD")
-            ]
+            ],
+            on_change= lambda _: self.actualizar_celda(0,4, metodo_pago.value)
         )
-        
+        headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
+
+        # Crear las filas de la tabla (una fila vacía para empezar)
+        rows = [
+            ft.DataRow(cells=[
+                ft.DataCell(ft.Text(value="\n\n"), ) for _ in headers
+            ])
+        ]
+
+        # Crear la tabla
+        self.table = ft.DataTable(
+            columns=[ft.DataColumn(ft.Text(header)) for header in headers],
+            rows=rows,
+        )
+        self.descripcion_venta = ft.Text(value='', max_lines=None)
+        self.table.rows[0].cells[2].content = ft.Container(
+                    content=ft.Column(
+                        [self.descripcion_venta],
+                        scroll=ft.ScrollMode.AUTO,
+                    ),
+                    width=150,
+                    height=250,
+                    border=ft.border.all(),
+                )
+        self.btn_add = ft.IconButton(
+            icon=ft.icons.ADD,
+            disabled=True,
+            tooltip='Agregar Producto al Registro',
+            on_click= lambda _: add_product()
+        )
+        self.btn_cancelar = ft.IconButton(
+            icon=ft.icons.CANCEL_OUTLINED,
+            disabled=True,
+            tooltip='Cancelar seleccion de producto'
+        )
+        btns = ft.Container(
+                ft.Row(
+                    [
+                        self.btn_add, self.btn_cancelar
+                    ]
+                ),
+            width=125,
+            padding=ft.padding.only(bottom=275),
+            border=ft.border.all()
+        )
         list_product = ft.Container(
             content=ft.Column(controls=self.products,
                                 scroll=ft.ScrollMode.ALWAYS,
@@ -381,13 +439,14 @@ class RegistroVenta(ft.Container):
                 ft.Row(
                     [
                         self.entry_producto, self.entry_cant, entry_ci_cliente
-                    ]
+                    ],
                 ),
                 ft.Row(
                     [
-                        list_product, metodo_pago
+                        list_product, btns ,metodo_pago
                     ]
-                )
+                ),
+                self.table
             ]
         )
         self.content = body
@@ -414,6 +473,14 @@ class RegistroVenta(ft.Container):
         self.entry_producto.disabled = True
         self.entry_cant.disabled = False
         self.update()
+
+    def actualizar_celda(self,fila, columna, valor):
+        if fila < len(self.table.rows) and columna < len(self.table.columns):
+            if columna == 2:
+                self.descripcion_venta.value += valor
+            else:
+                self.table.rows[fila].cells[columna].content.value = valor
+            self.table.update()
 
 #region otros
 def tab_edit(producto) -> ft.Container:
