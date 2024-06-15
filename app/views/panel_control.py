@@ -135,7 +135,38 @@ class Panel_alerts(ft.AlertDialog):
             new_user = entry_user.value
             passw = entry_pass.value
             rol = multi_select.value
-            self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol)
+            print(rol)
+            if self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol):
+                self.page.banner = ft.Banner(
+                    bgcolor=ft.colors.BLUE_100,
+                    leading=ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
+                    content=ft.Text(
+                        f"Se ha agregado al usuario {new_user} de manera exitosa"
+                    ),
+                    actions=[
+                        ft.TextButton("aceptar", on_click=close_banner),
+                    ],
+                )
+                show_banner_click()
+            else:
+                self.page.banner = ft.Banner(
+                    bgcolor=ft.colors.AMBER_100,
+                    leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
+                    content=ft.Text(
+                        f"No se ha podido agregar al usuario, intente nuevamente"
+                    ),
+                    actions=[
+                        ft.TextButton("aceptar", on_click=close_banner),
+                    ],
+                )
+                show_banner_click()
+            self.close()
+        def close_banner(e):
+            self.page.banner.open = False
+            self.page.update()
+        def show_banner_click():
+            self.page.banner.open = True
+            self.page.update()
         title = ft.Text("Agregar Usuario", size=48, weight=ft.FontWeight.W_900)
         entry_user = ft.TextField(label='Nombre', width=240)
         entry_pass = ft.TextField(label='Contraseña', password=True, width=240)
@@ -149,7 +180,8 @@ class Panel_alerts(ft.AlertDialog):
                 ft.dropdown.Option("administrador"),
                 ft.dropdown.Option("gerente"),
                 ft.dropdown.Option("empleado")
-            ], padding=ft.padding.only(left=27)
+            ], padding=ft.padding.only(left=27),
+            on_change= lambda _: print(multi_select.value)
         )
         self.widgt_agg = [entry_user,entry_pass, btn_aceptar, btn_cancelar]
         body = ft.Column(
@@ -188,12 +220,51 @@ class Panel_alerts(ft.AlertDialog):
         self.alert_agg = body
     
     def draw_alert_dell(self):
+        def close_banner(e):
+            self.page.banner.open = False
+            self.page.update()
+        def show_banner_click():
+            self.page.banner.open = True
+            self.page.update()
         def aceptar():
             user_dell = entry_user.value
             if user_dell != entry_user_r.value:
-                print('los nombres no coinciden')
-                return False
-            self.crtl_user.delete_user(usuario_creador=user, username=user_dell)
+                self.page.banner = ft.Banner(
+                    bgcolor=ft.colors.AMBER_100,
+                    leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
+                    content=ft.Text(
+                        f"los nombres no coinciden, intente nuevamente"
+                    ),
+                    actions=[
+                        ft.TextButton("aceptar", on_click=close_banner),
+                    ],
+                )
+                show_banner_click()
+            elif self.crtl_user.delete_user(usuario_creador=user, username=user_dell):
+                self.page.banner = ft.Banner(
+                    bgcolor=ft.colors.BLUE_100,
+                    leading=ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
+                    content=ft.Text(
+                        f"Se ha eliminado al usuario {user} de manera exitosa"
+                    ),
+                    actions=[
+                        ft.TextButton("aceptar", on_click=close_banner),
+                    ],
+                )
+                show_banner_click()
+            else:
+                self.page.banner = ft.Banner(
+                    bgcolor=ft.colors.AMBER_100,
+                    leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
+                    content=ft.Text(
+                        f"No se ha podido agregar al usuario, intente nuevamente"
+                    ),
+                    actions=[
+                        ft.TextButton("aceptar", on_click=close_banner),
+                    ],
+                )
+                show_banner_click()
+            self.close()
         title = ft.Text("Eliminar Usuario", size=48, weight=ft.FontWeight.W_900)
         entry_user = ft.TextField(label='Nombre de Usuario a eliminar', width=240)
         entry_user_r = ft.TextField(label='Repetir Nombre', width=240)

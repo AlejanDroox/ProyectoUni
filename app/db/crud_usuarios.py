@@ -41,19 +41,22 @@ class ControlUsuarios:
             return False
         """crea un usuario"""
         usuario = self.encontrar_usuario(username)
-        if not usuario:
-            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) #yosnel que hace esta mierda desencripta o encripta
-            nuevo_usuario = Usuario(username=username,
-                            contrasena=hashed.decode('utf-8'),
-                            Rol=rol_nombre)
-            
-            self.db_connector.session.add(nuevo_usuario)
-            self.db_connector.session.commit()
-            print("Usuario creado exitosamente.")
-            return True
-            
-        else:
-            print(f"El usuario '{username}' ya existe.")
+        try:
+            if not usuario:
+                hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) #yosnel que hace esta mierda desencripta o encripta
+                nuevo_usuario = Usuario(username=username,
+                                contrasena=hashed.decode('utf-8'),
+                                Rol=rol_nombre)
+                
+                self.db_connector.session.add(nuevo_usuario)
+                self.db_connector.session.commit()
+                print("Usuario creado exitosamente.")
+                return True
+                
+            else:
+                print(f"El usuario '{username}' ya existe.")
+                return False
+        except: 
             return False
 # FIN CREATE USER
 
