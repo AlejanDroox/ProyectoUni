@@ -120,13 +120,20 @@ class LineaProductos():
                     p.update()
 class Inventario(ft.Tabs):
 
-    def __init__(self, page):
+    def __init__(self, page:ft.page):
         super().__init__()
         self.page = page
         self.contenido()
         self.selected_index = 0
         self.animation_duration = 400
+        self.conx = DbConnector(CONFIG)
+        self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
+        self.page.dialog = self.alert_dialog
     def contenido(self):
+        def open_alert(alert):
+            self.alert_dialog.change_alert(alert)
+            self.page.dialog.open = True
+            self.page.update()
         self.entry_search = ft.TextField(
             label='Nombre el Producto',
             icon=ft.icons.SEARCH,
@@ -135,6 +142,7 @@ class Inventario(ft.Tabs):
         btn_create = ft.TextButton(
             text='agregar producto',
             icon=ft.icons.CREATE,
+            on_click= lambda _: open_alert('agg')
         )
         self.contenedor_productos = LineaProductos()
         tab_inventario = ft.Container(
@@ -221,7 +229,7 @@ class Inventario(ft.Tabs):
             pass
 
 
-class Panel_alerts(ft.AlertDialog):
+class PanelAlerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
     alert dialog los guarda en una variable y segun se necesite el contenido del alert
     dialog sera uno u otro. tambien posee el backend de los mismos"""
@@ -230,19 +238,15 @@ class Panel_alerts(ft.AlertDialog):
     }
     def __init__(self, page:ft.Page, conx):
         super().__init__()
-        self.crtl_user = ControlUsuarios(conx)
         self.page = page
         self.draw_alerts()
         self.alerts = {
             'agg': self.alert_agg,
-            'dell': self.alert_dell,
-            'edit': self.alert_edit,
         }
     
     def draw_alerts(self):
         self.draw_alert_agg()
-        self.draw_alert_dell()
-        self.draw_alert_edit()
+        
     
     def change_alert(self, alert_name):
         self.content = self.alerts[alert_name]
@@ -254,12 +258,11 @@ class Panel_alerts(ft.AlertDialog):
             entry.password = not entry.password
             btn.page.update()
         def aceptar():
-            new_user = entry_user.value
+            new_product= entry_product.value
             passw = entry_pass.value
             rol = multi_select.value
-            self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol)
         title = ft.Text("Editar ", size=48, weight=ft.FontWeight.W_900)
-        entry_user = ft.TextField(label='Nombre', width=240)
+        entry_product = ft.TextField(label='Nombre', width=240)
         entry_marca = ft.TextField(label='Marca', width=240)
         entry_descripcion = ft.TextField(label='descripcion', width=240)
         btn_pass = ft.IconButton(icon=ft.icons.REMOVE_RED_EYE, selected_icon=ft.icons.REMOVE_RED_EYE_OUTLINED, on_click= lambda _: mostrar_pass(btn_pass, entry_pass))
@@ -269,32 +272,29 @@ class Panel_alerts(ft.AlertDialog):
             label= 'Proevedor',
             width=160,
             options= [
-                ft.dropdown.Option("administrador"),
-                ft.dropdown.Option("gerente"),
-                ft.dropdown.Option("empleado")
-            ], padding=ft.padding.only(left=27)
+                ft.dropdown.Option("juan"),
+                ft.dropdown.Option("pedro"),
+                ft.dropdown.Option("qlq")
+            ]
         )
-        self.widgt_agg = [entry_user,entry_pass, btn_aceptar, btn_cancelar]
+        self.widgt_agg = [entry_product,entry_marca, entry_descripcion]
         body = ft.Column(
                     [
                         title, 
                         ft.Container(
                             ft.Row(
                                 [
-                                    entry_user, multi_select
+                                    entry_product, multi_select
                                 ],
                                 alignment=ft.MainAxisAlignment.START
                             ),
                             padding=ft.padding.only(left=45, top=23, right=27)
                         ),
-                        ft.Container(
-                            ft.Row(
-                                [
-                                    entry_pass, btn_pass
-                                ],
-                                alignment=ft.MainAxisAlignment.START
-                            ),
-                            padding=ft.padding.only(left=45, top=35, bottom=55)
+                        ft.Row(
+                            [
+                                entry_marca, entry_descripcion
+                            ],
+                            alignment=ft.MainAxisAlignment.START
                         ),
                         ft.Row(
                             [
@@ -309,6 +309,11 @@ class Panel_alerts(ft.AlertDialog):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER
             )
         self.alert_agg = body
+    def close(self):
+        for i in self.widgt_agg:
+            i.value = ''
+        self.open = False
+        self.page.update()
 #region RegistroVentas
 class RegistroVenta(ft.Container):
     def __init__(self):
