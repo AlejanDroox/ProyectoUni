@@ -316,6 +316,7 @@ class RegistroVenta(ft.Container):
         #self.border=ft.border.all(color='#BABABA', width=2.5)
         self.products = []
         self.products_mini = []
+        self.monto_total = 0
         self.draw_contenido()
     def draw_contenido(self):
         def comprobar_cant(e):
@@ -343,9 +344,17 @@ class RegistroVenta(ft.Container):
             if self.entry_cant.color != 'red':
                 registro_product = f'- {self.entry_producto.value} : {self.entry_cant.value} \n'
                 self.actualizar_celda(0,2, registro_product)
+                for i in self.products:
+                    i:MiniCard
+                    if i.name == self.entry_producto.value:
+                        self.monto_total += i.price * int(self.entry_cant.value)
+                        monto_total_text.value = f'Monto Total: {self.monto_total} bs'
+                        self.actualizar_celda(0,3, self.monto_total)
+                        break
                 self.entry_producto.value = ''
                 self.entry_producto.disabled = False
                 self.entry_cant.disabled = True
+                self.btn_add.disabled = True
                 self.update()
         title = ft.Text(
             value='Registro De Ventas',
@@ -384,24 +393,23 @@ class RegistroVenta(ft.Container):
         # Crear las filas de la tabla (una fila vacía para empezar)
         rows = [
             ft.DataRow(cells=[
-                ft.DataCell(ft.Text(value="\n\n"), ) for _ in headers
+                ft.DataCell(ft.Text(value="\n\n") ) for _ in headers
             ])
         ]
-
+        
         # Crear la tabla
         self.table = ft.DataTable(
             columns=[ft.DataColumn(ft.Text(header)) for header in headers],
             rows=rows,
+            data_row_min_height=150,
         )
-        self.descripcion_venta = ft.Text(value='', max_lines=None)
+        self.descripcion_venta = ft.Text(value='', max_lines=None, size=12)
         self.table.rows[0].cells[2].content = ft.Container(
                     content=ft.Column(
                         [self.descripcion_venta],
                         scroll=ft.ScrollMode.AUTO,
+                        expand=True
                     ),
-                    width=150,
-                    height=250,
-                    border=ft.border.all(),
                 )
         self.btn_add = ft.IconButton(
             icon=ft.icons.ADD,
@@ -412,7 +420,8 @@ class RegistroVenta(ft.Container):
         self.btn_cancelar = ft.IconButton(
             icon=ft.icons.CANCEL_OUTLINED,
             disabled=True,
-            tooltip='Cancelar seleccion de producto'
+            tooltip='Cancelar seleccion de producto',
+            on_click=lambda _: self.cancel_product()
         )
         btns = ft.Container(
                 ft.Row(
@@ -424,7 +433,7 @@ class RegistroVenta(ft.Container):
             padding=ft.padding.only(bottom=275),
             border=ft.border.all()
         )
-        list_product = ft.Container(
+        self.list_product = ft.Container(
             content=ft.Column(controls=self.products,
                                 scroll=ft.ScrollMode.ALWAYS,
                                 spacing=25,
@@ -433,6 +442,12 @@ class RegistroVenta(ft.Container):
             width=250,
             #bgcolor='#D9D9D9'
             )
+        monto_total_text = ft.Text(
+            value=f'Monto total: 0 bs',
+            size=18,
+            weight=ft.FontWeight.W_900,
+            style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)
+        )
         body = ft.Column(
             [
                 title,
@@ -440,14 +455,20 @@ class RegistroVenta(ft.Container):
                     [
                         self.entry_producto, self.entry_cant, entry_ci_cliente
                     ],
+                    alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
                 ft.Row(
                     [
-                        list_product, btns ,metodo_pago
-                    ]
+                        self.list_product, btns ,metodo_pago, monto_total_text 
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
-                self.table
-            ]
+                ft.Container(
+                    content= self.table,
+                    alignment=ft.alignment.top_center,
+                    padding=ft.padding.only(bottom=40))
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY
         )
         self.content = body
     def search(self, search):
@@ -471,9 +492,17 @@ class RegistroVenta(ft.Container):
         self: RegistroVenta = self[0]
         self.entry_producto.value = product.name
         self.entry_producto.disabled = True
+        self.btn_cancelar.disabled = False
+        self.btn_add.disabled = False
         self.entry_cant.disabled = False
         self.update()
 
+    def cancel_product(self):
+        self.entry_producto.value = ''
+        self.entry_producto.disabled = False
+        self.entry_cant.disabled = True
+        self.btn_add.disabled = True
+        self.update()
     def actualizar_celda(self,fila, columna, valor):
         if fila < len(self.table.rows) and columna < len(self.table.columns):
             if columna == 2:
