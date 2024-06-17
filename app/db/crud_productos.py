@@ -60,7 +60,7 @@ class ControlProductos():
 
             # Configuración de la base de datos
 if __name__ ==' __main__':
-    conexion = DBConnector(CONFIG)
+    conexion = DbConnector(CONFIG)
 
     Base.metadata.create_all(conexion.engine)
 
