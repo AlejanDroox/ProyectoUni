@@ -1,5 +1,6 @@
 """Modulo que encripta la contraseña"""
 from math import perm
+from re import U
 import bcrypt
 from db.db_connector import DbConnector
 from sqlalchemy import create_engine
@@ -35,7 +36,7 @@ class ControlUsuarios:
 # Inicio Create User
     def create_user(self, usuario_creador, username, password, rol_nombre):
         # Verificar si el usuario_creador puede crear un usuario
-        if permisos.crear_admin(usuario_creador=usuario_creador.rol):
+        if permisos.crear_admin(usuario_creador):
             print("No tienes permisos para crear usuarios.")
             #raise NotPermisos
             return False
@@ -77,7 +78,7 @@ class ControlUsuarios:
 #FIN AUTENTICACION
 # Inicio reset password
     def reset_password(self,usuario_creador, username, new_password):
-        if not permisos.actualizar_admin(usuario_creador) :
+        if  permisos.actualizar_admin(usuario_creador) :
             
             """resetea la contraseña"""
             usuario = self.encontrar_usuario(username)
@@ -91,7 +92,7 @@ class ControlUsuarios:
                 
                 print(f"El usuario '{username}' no fue encontrado")
             
-        elif not  permisos.actualizar_gerente(usuario_creador):
+        elif  permisos.actualizar_gerente(usuario_creador):
             """resetea la contraseña"""
             usuario = self.encontrar_usuario(username)
             if usuario:
@@ -102,13 +103,11 @@ class ControlUsuarios:
                 print("Contraseña cambiada exitosamente.")
             else:
                 print(f"El usuario '{username}' no fue encontrado")
-        else:
-            print(usuario_creador)
-            print("ud no tiene permiso cacocorro")
-# FIN RESET PASSWORD
 
+# FIN RESET PASSWORD
+    # inicio delete_user
     def delete_user(self,usuario_creador, username):
-        if not permisos.eliminar_admin(usuario_creador):
+        if  permisos.eliminar_admin(usuario_creador):
             """borra un usuario"""
             usuario = self.encontrar_usuario(username)
             if usuario:
@@ -117,30 +116,165 @@ class ControlUsuarios:
                 print(f"Usuario '{username}' fue borrado correctamente.")
             else:
                 print(f"El usuario '{username}' no existe en la BD")
+# fin del delete_user
+
+
+
+# editar status de usuario
+       
+    def edit_status_user(self,usuario_creador,username,status_nuevo):
+        if   permisos.actualizar_admin(usuario_creador.status) :
+                print("uwu")
+                usuario = self.encontrar_usuario(username)
+        
+                if usuario.status !="administrador" or usuario.status !="gerente" or usuario.status !='empleado':
+                    
+                    
+                    if  status_nuevo== 'administrador' or status_nuevo=='gerente' or status_nuevo=='empleado':
+                        usuario.status= status_nuevo
+                        self.db_connector.session.commit()
+                        print(f"el status fue cambiado a {status_nuevo}")
+                
+                
+                elif status_nuevo!= 'administrador' or status_nuevo!='gerente' or status_nuevo!='empleado':
+                    
+                    print("como vas a escribir mal imbecil")
+                
+                    
+               
+  # actualizar gerente
+
+            
+              
+        if  permisos.actualizar_gerente(usuario_creador.status) :
+            
+                print(permisos.actualizar_gerente(usuario_creador))
+                print(usuario_creador.status)
+                usuario = self.encontrar_usuario(username)
+                if usuario.status =="administrador":
+                    print("ud no puede editar a un administrador")
+                    
+                elif usuario.status !="administrador" or usuario.status !="gerente" or usuario.status !='empleado':
+                    
+                    if status_nuevo=='administrador':
+                        print( "no puedes volver a alguien administrador eres gerente")
+                        
+                    elif  status_nuevo== 'administrador' or status_nuevo=='gerente' or status_nuevo=='empleado':
+                            usuario.status= status_nuevo
+                            self.db_connector.session.commit()
+                            print(f"el status fue cambiado a {status_nuevo}")
+                
+                
+                    elif status_nuevo!= 'administrador' or status_nuevo!='gerente' or status_nuevo!='empleado':
+                    
+                            print("como vas a escribir mal imbecil")
+                
+                  
+        else:("usuario no encontrado")
+    
+    # fin editar status usuarios
+    
+    
+    
+    
+    # inicio editar rol
+    def edit_rol_user(self,usuario_creador,username,rol_nuevo):
+            
+        if   permisos.actualizar_admin(usuario_creador)=="administrador" :
+                print("uwu")
+                usuario = self.encontrar_usuario(username)
+        
+                if usuario.rol !="administrador" or usuario.rol !="gerente" or usuario.rol !='empleado':
+                    
+                    
+                    if  rol_nuevo== 'administrador' or rol_nuevo=='gerente' or rol_nuevo=='empleado':
+                        usuario.rol= rol_nuevo
+                        self.db_connector.session.commit()
+                        print(f"el rol fue cambiado a {rol_nuevo}")
+                
+                
+                elif rol_nuevo!= 'administrador' or rol_nuevo!='gerente' or rol_nuevo!='empleado':
+                    
+                    print("como vas a escribir mal imbecil")
+                    
+                else: print("ni modo  cuando lo sabes lo sabes")
+                
+         
+                    
+               
+        # actualizar gerente
+
+            
+              
+        if  permisos.actualizar_gerente(usuario_creador)=="gerente" :
+                print(permisos.actualizar_gerente(usuario_creador))
+                print(usuario_creador.rol)
+                usuario = self.encontrar_usuario(username)
+                if usuario.rol =="administrador":
+                    print("ud no puede editar a un administrador")
+                    
+                elif usuario.rol !="administrador" or usuario.rol !="gerente" or usuario.rol !='empleado':
+                    
+                    if rol_nuevo=='administrador':
+                        print( "no puedes volver a alguien administrador eres gerente")
+                        
+                    elif  rol_nuevo== 'administrador' or rol_nuevo=='gerente' or rol_nuevo=='empleado':
+                            usuario.rol= rol_nuevo
+                            self.db_connector.session.commit()
+                            print(f"el rol fue cambiado a {rol_nuevo}")
+                
+                
+                    elif rol_nuevo!= 'administrador' or rol_nuevo!='gerente' or rol_nuevo!='empleado':
+                    
+                            print("como vas a escribir mal imbecil")
+                else:print("ni modo  cuando lo sabes lo sabes")
+                  
+        else:print("usuario no encontrado")
+    
+    
+    
+    # fin editar rol 
+
+
+    def devolver_users(self,):
+        lista_users=list(self.db_connector.session.query(Usuario).all())
+        for usuario in lista_users:
+            print(f"Nombre: {usuario.username}")
+            print(f"Status: {usuario.status}")
+            print(f"Rol: {usuario.rol}")
+            print("-" * 20)
+    
+
+
 #termina crud usuarios 
 
 
 
 # Configuración de la base de datos
 if __name__ == '__main__':
-    conexion = DBConnector(CONFIG)
+    conexion = DbConnector(CONFIG)
 
     Base.metadata.create_all(conexion.engine)
 
     control_usuarios = ControlUsuarios(conexion)
 
-    print("prueba de  crear usuarios :")
+    # print("prueba de  crear usuarios :")
     username="azael"
     password="1234"
+    user_creador= "yosnell"
+    usuario_creador = control_usuarios.encontrar_usuario(user_creador)
+    status_nuevo="administrador"
+    
+    #control_usuarios.edit_rol_user(usuario_creador,username,status_nuevo)
 
-    #suario_creador = control_usuarios.encontrar_usuario(username)
-
+    control_usuarios.devolver_users()
     #control_usuarios.delete_user(usuario_creador,'nuevo_usuario4')
 
-    # control_usuarios.reset_password(usuario_creador,'nuevo_usuario', '1234')
+    #control_usuarios.reset_password(usuario_creador,'yosnel', '1234')
 
-    # control_usuarios.create_user(usuario_creador, 'nuevo_usuario4', 'contraseña1234', 'empleado')
+    #control_usuarios.create_user(usuario_creador, 'nuevo_usuario4', 'contraseña1234', 'empleado')
 
 # Observacion   hay que hacer una autenticacion tambien para contrasenia ya que se pueden crear dos usuarios con contrasenias iguales
 
 #observacion 2 no se que es esa vaina de deprecated yosnel chambee
+
