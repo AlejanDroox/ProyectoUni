@@ -1,6 +1,7 @@
 """Contiene todo lo relacionado a la estructura y
 procesos de la ventana 'procesos', valga la redundancia"""
 from time import sleep
+import datetime
 import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
@@ -361,6 +362,16 @@ class RegistroVenta(ft.Container):
                 self.entry_cant.disabled = True
                 self.btn_add.disabled = True
                 self.update()
+        
+        def open_date_picker(e):
+            self.datepicker.pick_date()
+        # Obtener la fecha de hoy
+        hoy = datetime.datetime.now()
+        self.datepicker = ft.DatePicker(
+                first_date=datetime.datetime(2023, 10, 1),
+                last_date=hoy,
+                on_change=self.on_date_selected,
+            )
         title = ft.Text(
             value='Registro De Ventas',
             size=48,
@@ -382,6 +393,11 @@ class RegistroVenta(ft.Container):
             label='Cedula Cliente',
             input_filter=ft.NumbersOnlyInputFilter(),
             on_change= lambda _: self.actualizar_celda(0, 1, entry_ci_cliente.value)
+        )
+        self.btn_date_picker = ft.IconButton(
+            icon=ft.icons.DATE_RANGE,
+            tooltip='Seleccionar fecha',
+            on_click=open_date_picker
         )
         metodo_pago = ft.Dropdown(
             label= 'Metodo de pago',
@@ -428,6 +444,15 @@ class RegistroVenta(ft.Container):
             tooltip='Cancelar seleccion de producto',
             on_click=lambda _: self.cancel_product()
         )
+        self.list_product = ft.Container(
+            content=ft.Column(controls=self.products,
+                                scroll=ft.ScrollMode.ALWAYS,
+                                spacing=25,
+            ),
+            height=350,
+            width=250,
+            #bgcolor='#D9D9D9'
+            )
         btns = ft.Container(
                 ft.Row(
                     [
@@ -438,33 +463,39 @@ class RegistroVenta(ft.Container):
             padding=ft.padding.only(bottom=275),
             border=ft.border.all()
         )
-        self.list_product = ft.Container(
-            content=ft.Column(controls=self.products,
-                                scroll=ft.ScrollMode.ALWAYS,
-                                spacing=25,
-            ),
-            height=350,
-            width=250,
-            #bgcolor='#D9D9D9'
-            )
         monto_total_text = ft.Text(
             value=f'Monto total: 0 bs',
             size=18,
             weight=ft.FontWeight.W_900,
             style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)
         )
+        btn_cancelar_todo = ft.TextButton(
+            text= 'CANCELAR',
+        )
+        m_pago_btn_cancelar = ft.Column(
+            controls=[
+                metodo_pago, btn_cancelar_todo
+            ]
+        )
+        btn_aceptar = ft.TextButton(
+            text= 'ACEPTAR',
+            on_click= lambda _: self.create_registro()
+        )
+        monto_total_btn_cancelar = ft.Column(
+            controls=[monto_total_text, btn_aceptar]
+        )
         body = ft.Column(
             [
                 title,
                 ft.Row(
                     [
-                        self.entry_producto, self.entry_cant, entry_ci_cliente
+                        self.entry_producto, self.entry_cant, entry_ci_cliente, self.btn_date_picker
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
                 ft.Row(
                     [
-                        self.list_product, btns ,metodo_pago, monto_total_text 
+                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar 
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
@@ -476,6 +507,20 @@ class RegistroVenta(ft.Container):
             alignment=ft.MainAxisAlignment.SPACE_EVENLY
         )
         self.content = body
+
+    def change_date(self, e):
+        print(type(self.datepicker.value))
+        e.control.page.update()
+
+    # happens when example is added to the page (when user chooses the DatePicker control from the grid)
+    def did_mount(self):
+        self.page.overlay.append(self.datepicker)
+        self.page.update()
+
+    # happens when example is removed from the page (when user chooses different control group on the navigation rail)
+    def will_unmount(self):
+        self.page.overlay.remove(self.datepicker)
+        self.page.update()
     def search(self, search):
         if len(search) >= 1:
             for p in self.products:
@@ -492,6 +537,10 @@ class RegistroVenta(ft.Container):
             for i in self.products:
                 i.visible = False
                 self.update()
+    def on_date_selected(self, e):
+        if self.datepicker.value is not None:
+            self.actualizar_celda(0, 0, self.datepicker.value.strftime("%Y-%m-%d"))
+            self.update()
     def select(*self):
         product:MiniCard = self[1].control
         self: RegistroVenta = self[0]
@@ -501,7 +550,6 @@ class RegistroVenta(ft.Container):
         self.btn_add.disabled = False
         self.entry_cant.disabled = False
         self.update()
-
     def cancel_product(self):
         self.entry_producto.value = ''
         self.entry_producto.disabled = False
@@ -515,7 +563,15 @@ class RegistroVenta(ft.Container):
             else:
                 self.table.rows[fila].cells[columna].content.value = valor
             self.table.update()
-
+    def create_registro(self):
+        registro = {
+            'fecha': self.table.rows[0].cells[0].content.value,
+            'cliente': self.table.rows[0].cells[1].content.value,
+            'descripcion': self.descripcion_venta.value,
+            'monto': self.table.rows[0].cells[3].content.value,
+            'metodo': self.table.rows[0].cells[4].content.value,
+        }
+        print(registro)
 #region otros
 def tab_edit(producto) -> ft.Container:
     """tab de edicion de productos"""
