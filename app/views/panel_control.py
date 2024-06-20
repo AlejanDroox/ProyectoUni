@@ -35,7 +35,6 @@ class Panel_Control(ft.Container):
                 bgcolor='#D9D9D9',
                 radius=60
             )
-        print(self.crtl_user.devolver_users())
         #contenedor izquierdo, tiene lo de la info de user 
         content_info = ft.Container(
             **CONTAINER_STYLE_2,
@@ -67,6 +66,27 @@ class Panel_Control(ft.Container):
             height=500,
             width=370
         )
+        rows = []
+        for user in self.crtl_user.devolver_users():
+            status = 'activo' if user.Status != '0' else 'inactivo'
+            row = ft.DataRow(
+                cells=[
+                    ft.DataCell(ft.Text(user.username)),
+                    ft.DataCell(ft.Text(user.Rol)),
+                    ft.DataCell(ft.Text(status)),
+                ]
+            )
+            rows.append(row)
+        
+        tabla_user = ft.DataTable(
+                columns=[
+                    ft.DataColumn(ft.Text("Nombre")),
+                    ft.DataColumn(ft.Text("Rol")),
+                    ft.DataColumn(ft.Text("Status")),
+                ],
+                rows=rows,
+            )
+        
         contenedor_d = ft.Container(
             **CONTAINER_STYLE_1,
             content=ft.Column(
@@ -77,6 +97,10 @@ class Panel_Control(ft.Container):
                     ft.FilledTonalButton("Editar Status de Usuario", icon='supervised_user_circle'),
                     ft.Divider(thickness=2, color='white'),
                     ft.Container(
+                        content=ft.Column(
+                            [tabla_user],
+                            scroll=ft.ScrollMode.ALWAYS
+                        ),
                         **CONTAINER_STYLE_2,
                         width=650,
                         height=215
