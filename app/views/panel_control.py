@@ -20,7 +20,8 @@ class Panel_Control(ft.Container):
         self.page = page
         self.user = user
         self.conx = DbConnector(CONFIG)
-        self.alert_dialog = Panel_alerts(page= page, conx=self.conx)
+        self.crtl_user = ControlUsuarios(self.conx)
+        self.alert_dialog = Panel_alerts(page= page, crtl_user=self.crtl_user)
         self.page.dialog = self.alert_dialog
         self.contenido()
         self.padding = ft.padding.only(top=50)
@@ -34,7 +35,7 @@ class Panel_Control(ft.Container):
                 bgcolor='#D9D9D9',
                 radius=60
             )
-
+        print(self.crtl_user.devolver_users())
         #contenedor izquierdo, tiene lo de la info de user 
         content_info = ft.Container(
             **CONTAINER_STYLE_2,
@@ -99,6 +100,7 @@ class Panel_Control(ft.Container):
 
         self.alert_dialog.open = True
         self.page.update()
+#region PanelAlerts
 class Panel_alerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
     alert dialog los guarda en una variable y segun se necesite el contenido del alert
@@ -106,9 +108,9 @@ class Panel_alerts(ft.AlertDialog):
     STYLE_ALERT = {
         'bgcolor': 'white',  
     }
-    def __init__(self, page:ft.Page, conx):
+    def __init__(self, page:ft.Page, crtl_user):
         super().__init__()
-        self.crtl_user = ControlUsuarios(conx)
+        self.crtl_user = crtl_user
         self.page = page
         self.draw_alerts()
         self.alerts = {

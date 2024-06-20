@@ -8,7 +8,7 @@ from flet import (
     Text,
     icons,
 )
-
+BODY_PRUEBAS = flet.Container()
 
 def main(page: Page):
     # Pick files dialog
@@ -78,4 +78,4 @@ def main(page: Page):
     )
 
 
-flet.app(target=main)
+#flet.app(target=main)
