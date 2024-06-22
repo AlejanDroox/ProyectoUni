@@ -16,7 +16,7 @@ engine = create_engine(CONFIG)
 Base = automap_base()
 
 # Refleja las tablas de la base de datos en los modelos de SQLAlchemy
-Base.prepare(engine, reflect=True)
+Base.prepare(engine)
 
 # Accede a la clase de modelo correspondiente a la tabla 'Usuarios'
 Usuario = Base.classes.users
@@ -33,7 +33,7 @@ class ControlUsuarios:
         return self.db_connector.session.query(Usuario).filter_by(username=username).first()
     
 
-# Inicio Create User
+    # Inicio Create User
     def create_user(self, usuario_creador, username, password, rol_nombre):
         # Verificar si el usuario_creador puede crear un usuario
         if permisos.crear_admin(usuario_creador):
@@ -56,9 +56,9 @@ class ControlUsuarios:
         else:
             print(f"El usuario '{username}' ya existe.")
             return False
-# FIN CREATE USER
+    # FIN CREATE USER
 
-#incio imagino que esto es puro para el inicio de sesion
+    #incio imagino que esto es puro para el inicio de sesion
     def authenticate_user(self, username, password,):
         """confirma la contraseña"""
         usuario = self.encontrar_usuario(username)
@@ -72,8 +72,8 @@ class ControlUsuarios:
         else:
             print(f"El usuario '{username}' no fue encontrado")
             return False
-#FIN AUTENTICACION
-# Inicio reset password
+    #FIN AUTENTICACION
+    # Inicio reset password
     def reset_password(self,usuario_creador, username, new_password):
         if  permisos.actualizar_admin(usuario_creador) :
             
@@ -101,7 +101,7 @@ class ControlUsuarios:
             else:
                 print(f"El usuario '{username}' no fue encontrado")
 
-# FIN RESET PASSWORD
+    # FIN RESET PASSWORD
     # inicio delete_user
     def delete_user(self,usuario_creador, username):
         if  permisos.eliminar_admin(usuario_creador):
@@ -113,11 +113,11 @@ class ControlUsuarios:
                 print(f"Usuario '{username}' fue borrado correctamente.")
             else:
                 print(f"El usuario '{username}' no existe en la BD")
-# fin del delete_user
+    # fin del delete_user
 
 
 
-# editar status de usuario
+        # editar status de usuario
        
     def edit_status_user(self,usuario_creador,username,status_nuevo):
         if   permisos.actualizar_admin(usuario_creador.status) :
