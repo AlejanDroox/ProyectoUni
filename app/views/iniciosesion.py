@@ -1,7 +1,7 @@
 """Contiene todo la estructura visual del inicio de sesion y
 los procesos de la ventana misma"""
 import flet as ft
-from utils.globals import DIRECCIONES, CONFIG
+from utils.globals import DIRECCIONES, CONFIG, user
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
 from time import sleep
@@ -149,9 +149,10 @@ class InicioSesion():
 
         conx = DbConnector(config=CONFIG)
         ctrl = ControlUsuarios(conx)
-        user = self.entry_user.value
+        i_user = self.entry_user.value
         passw = self.entry_pass.value
-        if ctrl.authenticate_user(user,passw):
+        if ctrl.authenticate_user(i_user,passw):
+            user.setter(ctrl.encontrar_usuario(i_user))
             self.entry_user.value = ''
             self.entry_pass.value = ''
             self.open_banner('aprovado')
@@ -163,16 +164,3 @@ class InicioSesion():
             self.open_banner('error')
 
 
-
-#proceso para crear usuario
-#config = {
-#        'user': 'root',
-#        'password': '1234',
-#        'host': '127.0.0.1',
-#        'database': 'dbferreteria',  # nombre de la BD
-#        "port": "3306"
-#    }
-#    conx = DBConnector(config=config)
-#    conx.connect()
-#    ctrl = ControlUsuarios(conx)
-#    ctrl.create_user(username='hola', password= '1234')
