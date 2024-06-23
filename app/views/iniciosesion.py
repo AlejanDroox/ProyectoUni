@@ -156,7 +156,7 @@ class InicioSesion():
             self.entry_user.value = ''
             self.entry_pass.value = ''
             self.open_banner('aprovado')
-            sleep(3)
+            sleep(1.5)
             self.close_banner()
             page.go(DIRECCIONES['inventario'])
             print(user)

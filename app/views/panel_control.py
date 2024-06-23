@@ -18,7 +18,6 @@ class Panel_Control(ft.Container):
     def __init__(self, page:ft.Page):
         super().__init__()
         self.page = page
-        self.user = user
         self.conx = DbConnector(CONFIG)
         self.crtl_user = ControlUsuarios(self.conx)
         self.alert_dialog = Panel_alerts(page= page, crtl_user=self.crtl_user, load_table=self.load_table)
@@ -42,11 +41,11 @@ class Panel_Control(ft.Container):
             content=ft.Column(
                 [
                     ft.Text(
-                        value=f'Usuario: {self.user.user}',
+                        value=f'Usuario: {user.username}',
                         color='black'
                     ),
                     ft.Text(
-                        value=f'Rol: {self.user.get_rol()}',
+                        value=f'Rol: {user.rol}',
                         color='black'
                     ),
                 ]
