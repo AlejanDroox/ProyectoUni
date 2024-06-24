@@ -5,20 +5,6 @@ from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
 from time import sleep
-class EntrySesion(ft.TextField):
-    def __init__(self, label = 'EntrySesion', is_pass = False, icon = None):
-        super().__init__()
-        #self.input_filter = filter
-        self.width=280,
-        self.height=40,
-        self.border_radius= ft.border_radius.horizontal(left=10,right=30),
-        self.label = label,
-        #hint_text='Contraseña', es otra forma de poner el texto pero el de arriba me gusto mas
-        self.color= ft.colors.WHITE,
-        self.prefix_icon= icon, #el icono tambien podria ser lock
-        #self.text_vertical_align= -1,
-        self.password= is_pass,
-    
 class InicioSesion():
     def __init__(self, page):
         super().__init__()
@@ -42,6 +28,7 @@ class InicioSesion():
                 prefix_icon=ft.icons.PASSWORD, #el icono tambien podria ser lock
                 text_vertical_align= -1.0,
                 password= True,
+                can_reveal_password=True
             )
         self.body = ft.Container(
             ft.Row([

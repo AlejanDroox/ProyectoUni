@@ -592,13 +592,16 @@ class AgregarProducto(ft.Container):
         super().__init__()
         self.padding = 30
         self.border = ft.border.all()
+        self.image = "app/assets/productos/NoImage.jpeg"
     def draw_content(self):
-        self.zona_product = ft.Container(
+        zona_image = ft.Container(
             alignment=ft.alignment.center,
-            content=ft.Text('ska'),
-            width=720
+            content=ft.Image(src= self.image, width=230, height=200, 
+            fit=ft.ImageFit.FILL),
+            width=600
+
         )
-        style = {
+        style_number = {
 
         }
         self.entry_name = ft.TextField(
@@ -608,7 +611,10 @@ class AgregarProducto(ft.Container):
             label='Descripcion'
         )
         self.entry_precio_c = ft.TextField(
-            label='Precio Compra'
+            label='P. Compra',
+            tooltip='Precio de Compra del Producto',
+            width=75,
+            label_style={"size":10}
         )
         self.entry_precio_v = ft.TextField(
             label='Precio Venta'
@@ -637,7 +643,7 @@ class AgregarProducto(ft.Container):
             border_radius= 18
         )
         body = ft.Row(
-            [self.zona_product, zona_edit],
+            [zona_image, zona_edit],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         self.content = body
