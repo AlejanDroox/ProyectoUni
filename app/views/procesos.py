@@ -2,6 +2,8 @@
 procesos de la ventana 'procesos', valga la redundancia"""
 from time import sleep
 import datetime
+import os
+import shutil
 import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
@@ -592,17 +594,56 @@ class AgregarProducto(ft.Container):
         super().__init__()
         self.padding = 30
         self.border = ft.border.all()
-        self.image = "app/assets/productos/NoImage.jpeg"
+        self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
+        self.draw_content()
     def draw_content(self):
-        zona_image = ft.Container(
+        def comprobar_cant(e):
+            try:
+                c = int(self.entry_precio_c.value)
+            except:
+                c = 0
+            try:
+                v = int(self.entry_precio_v.value)
+            except:
+                v = 0
+            if v <= c:
+                self.entry_precio_c.color = 'red'
+                self.entry_precio_c.tooltip = 'el precio de compra no puede ser mayor al de venta'
+                self.entry_precio_v.color = 'red'
+                self.entry_precio_v.tooltip = 'el precio de venta no puede ser menor al de compra'
+            elif c <= 0:
+                self.entry_precio_c.color = 'red'
+                self.entry_precio_c.tooltip = 'El precio de compra no puede ser 0 o menor'
+            else:
+                self.entry_precio_c.color = None
+                self.entry_precio_c.tooltip = 'Precio de Compra del Producto'
+                self.entry_precio_v.color = None
+                self.entry_precio_v.tooltip = 'Precio de Venta del Producto'
+
+            self.update()
+
+            self.update()
+        self.image = ft.Image(
+                width=230, height=200, 
+                src=r'app\assets\productos\agregar_imagen.png',
+                fit=ft.ImageFit.FILL,
+                error_content=ft.Text('haga click para cargar una imagen'),
+                scale=2,
+            )
+        self.zona_image = ft.Container(
             alignment=ft.alignment.center,
-            content=ft.Image(src= self.image, width=230, height=200, 
-            fit=ft.ImageFit.FILL),
+            content=self.image,
+            on_click=self.pick_file,
             width=600
 
         )
         style_number = {
-
+            'width':75,
+            'label_style':{"size":10},
+            'border_radius':0,
+            'border':ft.InputBorder.UNDERLINE,
+            'filled':True,
+            'input_filter':ft.NumbersOnlyInputFilter()
         }
         self.entry_name = ft.TextField(
             label='Nombre'
@@ -613,14 +654,18 @@ class AgregarProducto(ft.Container):
         self.entry_precio_c = ft.TextField(
             label='P. Compra',
             tooltip='Precio de Compra del Producto',
-            width=75,
-            label_style={"size":10}
+            on_change=comprobar_cant,
+            **style_number
         )
         self.entry_precio_v = ft.TextField(
-            label='Precio Venta'
+            label='P. Venta',
+            tooltip='Precio de Venta del Producto',
+            on_change=comprobar_cant,
+            **style_number
         )
         self.entry_existencias = ft.TextField(
-            label='Existencias'
+            label='Existencia',
+            **style_number
         )
         self.Proevedor = ft.Dropdown(
             label='Proveedor'
@@ -633,22 +678,48 @@ class AgregarProducto(ft.Container):
                     self.entry_descripcion,
                     ft.Row(
                         [
-                            self.entry_precio_c, self.entry_precio_v
-                        ]
+                            self.entry_precio_c, self.entry_precio_v, self.entry_existencias
+                        ],
+                        spacing=6
                     ),
-                    self.entry_existencias
+                    ft.ElevatedButton("Select Image", on_click=self.pick_file)
                 ]
             ),
             bgcolor='#D9D9D9',
             border_radius= 18
         )
         body = ft.Row(
-            [zona_image, zona_edit],
+            [self.zona_image, zona_edit],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         self.content = body
-    def build(self):
-        self.draw_content()
+    def pick_file(self, e):
+        self.file_picker.pick_files(allow_multiple=False)
+    def on_file_picker_result(self, e: ft.FilePickerResultEvent):
+        if e.files:
+            path = e.files[0].path
+            try:
+                self.copy_image_to_assets(path)
+            except shutil.SameFileError:
+                self.image.src = f"app/assets/productos/{e.files[0].name}"
+            self.image.visible = True
+            self.image.update()
+            
+    def copy_image_to_assets(self, path):
+        filename = os.path.basename(path)
+        target_path = f"app/assets/productos/{filename}"
+        shutil.copyfile(path, target_path)
+        self.image.src = target_path
+
+    def did_mount(self):
+        self.page.overlay.append(self.file_picker)
+        self.page.update()
+
+    def will_unmount(self):
+        self.page.overlay.remove(self.file_picker)
+        self.page.update()
+    """def build(self):
+        self.draw_content()"""
 class Counter(ft.Container):
     def __init__(self):
         super().__init__()
