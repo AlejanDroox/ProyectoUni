@@ -323,7 +323,8 @@ class RegistroVenta(ft.Container):
         self.products = []
         self.products_mini = []
         self.monto_total = 0
-        self.draw_contenido()
+        self.conetor = DbConnector(CONFIG)
+        self.ctrl_producto = ControlProductos(self.conetor)
     def draw_contenido(self):
         def comprobar_cant(e):
             control: ft.TextField = e.control
@@ -572,6 +573,8 @@ class RegistroVenta(ft.Container):
             'metodo': self.table.rows[0].cells[4].content.value,
         }
         print(registro)
+    def build(self):
+        self.draw_contenido()
 #region otros
 def tab_edit(producto) -> ft.Container:
     """tab de edicion de productos"""
