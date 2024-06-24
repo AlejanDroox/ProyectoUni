@@ -238,11 +238,12 @@ class ControlUsuarios:
 
     def devolver_users(self,):
         lista_users=list(self.db_connector.session.query(Usuario).all())
-        for usuario in lista_users:
+        """for usuario in lista_users:
             print(f"Nombre: {usuario.username}")
-            print(f"Status: {usuario.status}")
-            print(f"Rol: {usuario.rol}")
-            print("-" * 20)
+            print(f"Status: {usuario.Status}")
+            print(f"Rol: {usuario.Rol}")
+            print("-" * 20)"""
+        return lista_users
     
 
 
