@@ -10,6 +10,7 @@ def main(page: ft.Page):
 
     body_inicio = InicioSesion(page)
     menu = menu_lateral(page=page)
+    inventario = Inventario(page=page)
     def cambio(e):
         page.views.clear()
         page.views.append(
@@ -24,7 +25,7 @@ def main(page: ft.Page):
                     DIRECCIONES['inventario'],
                     controls= [ft.AppBar(title=ft.Text("Procesos"),
                         bgcolor=ft.colors.SURFACE_VARIANT),
-                        Inventario(page=page)],
+                        inventario],
                     drawer=menu
                 )
             )
