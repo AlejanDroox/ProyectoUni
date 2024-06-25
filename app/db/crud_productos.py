@@ -42,7 +42,7 @@ class ControlProductos():
                     print("-" * 20)   
                     
                     # no se que tiene este codigo no agarra
-                    
+        return devolver2                    
         
  
 

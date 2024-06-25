@@ -7,7 +7,7 @@ import shutil
 import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
-from db.crud_productos import ControlProductos
+from db.crud_productos import ControlProductos, Producto
 from jaro import jaro_winkler_metric
 from utils.errores import NullValues
 
@@ -23,8 +23,8 @@ class ProductCard(ft.ExpansionPanel):
         self.image = image
         self.id = id
         self.descripcion = description
-        self.price = price
-        self.price_v = price * 1.5
+        self.price = round(float(price), 2)
+        self.price_v = round(float(price) * 1.5, 2)
         self.mini_card = ft.Container(
             content=ft.Column(
                 [
@@ -66,12 +66,12 @@ class MiniCard(ft.Container):
         self.name = name
         self.image = image
         self.id = id
-        self.price = price
+        self.price = round(float(price), 2)
         self.existencia = cantidad
         self.content=ft.Column(
                 [
                     ft.Image(src=image, width=230, height=200),
-                    ft.Text(value=f'{name}  precio:{price}'),
+                    ft.Text(value=f'{name}  precio:{self.price}'),
                     ft.Text(value=f'Disponibles {cantidad}', text_align='center'),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -133,11 +133,12 @@ class Inventario(ft.Tabs):
         super().__init__()
         self.page = page
         self.selected_index = 0
-        self.contenido()
         self.animation_duration = 400
         self.conx = DbConnector(CONFIG)
         self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
+        self.ctrl_productos = ControlProductos(self.conx)
         self.page.dialog = self.alert_dialog
+        self.contenido()
     def contenido(self):
         def open_alert(alert):
             self.alert_dialog.change_alert(alert)
@@ -205,14 +206,15 @@ class Inventario(ft.Tabs):
         self.cargar_productos(self.contenedor_productos)
 
     def cargar_productos(self,cont):
-        for i in range(18):
+        productos = self.ctrl_productos.devolver_productor(Producto)
+        for producto in productos:
             product_card = ProductCard(
                 image="app/assets/XDt.jpeg",
-                name=ferreteria_nombres[i],
-                description= ferreteria_descripciones[i], 
+                name=producto.nom_Producto,
+                description= producto.Desc_Producto, 
+                price=producto.Valor_Producto,
                 characteristics=['bueno', 'bonito', 'barato'], 
-                price=i,
-                id=i)
+                id=producto.id_Productos)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
                 elevation=8,
@@ -221,7 +223,11 @@ class Inventario(ft.Tabs):
                 controls= [product_card],
                 
             )
-            minicard = MiniCard(image='app/assets/XDt.jpeg', name= ferreteria_nombres[i], id=id, price = i, cantidad=50)
+            minicard = MiniCard(image='app/assets/XDt.jpeg',
+                name=producto.nom_Producto,
+                price=producto.Valor_Producto,
+                cantidad=50,
+                id=id)
             self.registro_ventas.products.append(minicard)
             minicard.on_click = self.registro_ventas.select
             name_product[product_card.name] = product_card
