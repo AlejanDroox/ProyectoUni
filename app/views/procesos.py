@@ -7,7 +7,7 @@ import shutil
 import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
-from db.crud_productos import ControlProductos, Producto
+from db.crud_productos import ControlProductos
 from jaro import jaro_winkler_metric
 from utils.errores import NullValues
 
@@ -17,15 +17,14 @@ Nombre: ProductCard"""
 mini_cards = []
 
 class ProductCard(ft.ExpansionPanel):
-    def __init__(self, id, image = r'app\assets\productos\NoImage.jpeg', name = '', description = '', price = 1, existencias = 0):
+    def __init__(self, image, name, description, characteristics, price, id):
         super().__init__()
         self.name = name
         self.image = image
         self.id = id
         self.descripcion = description
-        self.price = float(price)
-        self.price_v = float(price) * 1.5
-        self.existencias = existencias
+        self.price = price
+        self.price_v = price * 1.5
         self.mini_card = ft.Container(
             content=ft.Column(
                 [
@@ -39,9 +38,9 @@ class ProductCard(ft.ExpansionPanel):
         hed_content = ft.Container(
             ft.Column(
             [
-                ft.Image(src=self.image, width=230, height=200),
-                ft.Text(self.name),
-                ft.Text(self.descripcion),
+                ft.Image(src=image, width=230, height=200),
+                ft.Text(name),
+                ft.Text(description),
             ],
             alignment=ft.MainAxisAlignment.START,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -52,28 +51,28 @@ class ProductCard(ft.ExpansionPanel):
         self.content = ft.Column(
             controls=[
                 ft.Text(f"ID: {self.id}"),
+                ft.Text("Características:"),
+                ft.Text("  - " + ", ".join(characteristics)),
                 ft.Text(f"Precio Venta: {self.price_v}"),
                 ft.Text(f"Precio Compra: {self.price}"),
-                ft.Text(f"EXistencias: {self.existencias}"),
+                ft.Text(f"EXistencias: 50"),
                 ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
             ],
         )
 
 class MiniCard(ft.Container):
-    def __init__(self, id, image = r'app\assets\productos\NoImage.jpeg', name = '', description = '', price = 1, existencias = 0):
+    def __init__(self, name, image, id, price, cantidad):
         super().__init__()
         self.name = name
         self.image = image
         self.id = id
         self.price = price
-        self.existencia = existencias
-        self.descripcion = description
+        self.existencia = cantidad
         self.content=ft.Column(
                 [
                     ft.Image(src=image, width=230, height=200),
-                    ft.Text(value=f'{self.name}  precio:{self.existencia}'),
-                    ft.Text(value=f'Disponibles {self.existencia}', text_align='center'),
-                    ft.Text(value=f'Descripcion {self.descripcion}', text_align='center'),
+                    ft.Text(value=f'{name}  precio:{price}'),
+                    ft.Text(value=f'Disponibles {cantidad}', text_align='center'),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -134,9 +133,9 @@ class Inventario(ft.Tabs):
         super().__init__()
         self.page = page
         self.selected_index = 0
+        self.contenido()
         self.animation_duration = 400
         self.conx = DbConnector(CONFIG)
-        self.ctrl_product = ControlProductos(self.conx)
         self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
         self.page.dialog = self.alert_dialog
     def contenido(self):
@@ -203,20 +202,17 @@ class Inventario(ft.Tabs):
             
         ]
         self.expand=1
-        self.cargar_productos()
+        self.cargar_productos(self.contenedor_productos)
 
-    def cargar_productos(self):
-        productos = self.ctrl_product.devolver_productor(Producto)
-        self.contenedor_productos.lineas = []
-        self.registro_ventas.products = []
-        for i in productos:
-            print(dir(i))
+    def cargar_productos(self,cont):
+        for i in range(18):
             product_card = ProductCard(
-                name=i.nom_Producto,
-                description= i.Desc_Producto, 
-                price=i.Valor_Producto,
-                id=i.id_Productos,
-                existencias=i.Existencia)
+                image="app/assets/XDt.jpeg",
+                name=ferreteria_nombres[i],
+                description= ferreteria_descripciones[i], 
+                characteristics=['bueno', 'bonito', 'barato'], 
+                price=i,
+                id=i)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
                 elevation=8,
@@ -225,18 +221,12 @@ class Inventario(ft.Tabs):
                 controls= [product_card],
                 
             )
-            minicard = MiniCard(
-                image='app/assets/XDt.jpeg', 
-                name=i.nom_Producto,
-                description= i.Desc_Producto, 
-                price=i.Valor_Producto,
-                id=i.id_Productos,
-                existencias=i.Existencia)
+            minicard = MiniCard(image='app/assets/XDt.jpeg', name= ferreteria_nombres[i], id=id, price = i, cantidad=50)
             self.registro_ventas.products.append(minicard)
             minicard.on_click = self.registro_ventas.select
             name_product[product_card.name] = product_card
-            self.contenedor_productos.agg_card(panel)
-        self.update()
+            cont.agg_card(panel)
+            self.page.update()
 
     def search(self):
         try:
@@ -246,9 +236,7 @@ class Inventario(ft.Tabs):
             self.page.update()
         except  KeyError:
             pass
-    def build(self):
-        self.contenido()
-
+    
 
 class PanelAlerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
