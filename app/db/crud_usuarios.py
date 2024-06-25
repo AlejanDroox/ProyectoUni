@@ -16,7 +16,7 @@ engine = create_engine(CONFIG)
 Base = automap_base()
 
 # Refleja las tablas de la base de datos en los modelos de SQLAlchemy
-Base.prepare(engine)
+Base.prepare(engine, reflect=True)
 
 # Accede a la clase de modelo correspondiente a la tabla 'Usuarios'
 Usuario = Base.classes.users
@@ -33,7 +33,7 @@ class ControlUsuarios:
         return self.db_connector.session.query(Usuario).filter_by(username=username).first()
     
 
-    # Inicio Create User
+# Inicio Create User
     def create_user(self, usuario_creador, username, password, rol_nombre):
         # Verificar si el usuario_creador puede crear un usuario
         if permisos.crear_admin(usuario_creador):
@@ -42,23 +42,26 @@ class ControlUsuarios:
             return False
         """crea un usuario"""
         usuario = self.encontrar_usuario(username)
-        if not usuario:
-            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) #yosnel que hace esta mierda desencripta o encripta
-            nuevo_usuario = Usuario(username=username,
-                            contrasena=hashed.decode('utf-8'),
-                            rol=rol_nombre)
-            
-            self.db_connector.session.add(nuevo_usuario)
-            self.db_connector.session.commit()
-            print("Usuario creado exitosamente.")
-            return True
-            
-        else:
-            print(f"El usuario '{username}' ya existe.")
+        try:
+            if not usuario:
+                hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) #yosnel que hace esta mierda desencripta o encripta
+                nuevo_usuario = Usuario(username=username,
+                                contrasena=hashed.decode('utf-8'),
+                                Rol=rol_nombre)
+                
+                self.db_connector.session.add(nuevo_usuario)
+                self.db_connector.session.commit()
+                print("Usuario creado exitosamente.")
+                return True
+                
+            else:
+                print(f"El usuario '{username}' ya existe.")
+                return False
+        except: 
             return False
-    # FIN CREATE USER
+# FIN CREATE USER
 
-    #incio imagino que esto es puro para el inicio de sesion
+#incio imagino que esto es puro para el inicio de sesion
     def authenticate_user(self, username, password,):
         """confirma la contraseña"""
         usuario = self.encontrar_usuario(username)
@@ -72,8 +75,8 @@ class ControlUsuarios:
         else:
             print(f"El usuario '{username}' no fue encontrado")
             return False
-    #FIN AUTENTICACION
-    # Inicio reset password
+#FIN AUTENTICACION
+# Inicio reset password
     def reset_password(self,usuario_creador, username, new_password):
         if  permisos.actualizar_admin(usuario_creador) :
             
@@ -101,7 +104,7 @@ class ControlUsuarios:
             else:
                 print(f"El usuario '{username}' no fue encontrado")
 
-    # FIN RESET PASSWORD
+# FIN RESET PASSWORD
     # inicio delete_user
     def delete_user(self,usuario_creador, username):
         if  permisos.eliminar_admin(usuario_creador):
@@ -113,11 +116,11 @@ class ControlUsuarios:
                 print(f"Usuario '{username}' fue borrado correctamente.")
             else:
                 print(f"El usuario '{username}' no existe en la BD")
-    # fin del delete_user
+# fin del delete_user
 
 
 
-        # editar status de usuario
+# editar status de usuario
        
     def edit_status_user(self,usuario_creador,username,status_nuevo):
         if   permisos.actualizar_admin(usuario_creador.status) :
@@ -235,12 +238,11 @@ class ControlUsuarios:
 
     def devolver_users(self,):
         lista_users=list(self.db_connector.session.query(Usuario).all())
-        """for usuario in lista_users:
+        for usuario in lista_users:
             print(f"Nombre: {usuario.username}")
-            print(f"Status: {usuario.Status}")
-            print(f"Rol: {usuario.Rol}")
-            print("-" * 20)"""
-        return lista_users
+            print(f"Status: {usuario.status}")
+            print(f"Rol: {usuario.rol}")
+            print("-" * 20)
     
 
 

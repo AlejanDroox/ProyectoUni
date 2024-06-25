@@ -32,15 +32,23 @@ class ControlProductos():
 
         
     
-    def devolver_productor(self,Producto):
+    def devolver_productor(self,Producto) -> list[Producto]:
+        """devuelve una lista de los productos los cuales tienen las siguientes propiedades:
+        Desc_Product
+        Valor_Producto
+        Existencia
+        nom_Producto
+        id_Productos
+        """
         devolver2= list(self.db_connector.session.query(Producto).all())
         if devolver2:
             for Producto in devolver2 :
+                    print(type(Producto))
                     print(f"Nombre_Producto: {Producto.nom_Producto}")
                     print(f"existencia: {Producto.Existencia}")
                     print(f"valor_producto: {Producto.Valor_Producto}")
                     print("-" * 20)   
-                    
+            return devolver2
                     # no se que tiene este codigo no agarra
                     
         
