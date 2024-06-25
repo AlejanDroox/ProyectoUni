@@ -136,17 +136,17 @@ class InicioSesion():
 
         conx = DbConnector(config=CONFIG)
         ctrl = ControlUsuarios(conx)
-        i_user = self.entry_user.value
+        n_user = self.entry_user.value
         passw = self.entry_pass.value
-        if ctrl.authenticate_user(i_user,passw):
-            user.setter(ctrl.encontrar_usuario(i_user))
+        if ctrl.authenticate_user(n_user,passw):
             self.entry_user.value = ''
             self.entry_pass.value = ''
             self.open_banner('aprovado')
+            user.setter(ctrl.encontrar_usuario(n_user))
             sleep(1.5)
             self.close_banner()
             page.go(DIRECCIONES['inventario'])
-            print(user)
+            
         else:
             self.open_banner('error')
 

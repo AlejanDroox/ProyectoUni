@@ -170,8 +170,7 @@ class Panel_alerts(ft.AlertDialog):
             new_user = entry_user.value
             passw = entry_pass.value
             rol = multi_select.value
-            print(rol)
-            if self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol):
+            if self.crtl_user.create_user(usuario_creador=user.rol, username=new_user, password=passw, rol_nombre=rol):
                 self.page.banner = ft.Banner(
                     bgcolor=ft.colors.BLUE_100,
                     leading=ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
