@@ -5,20 +5,6 @@ from utils.globals import DIRECCIONES, CONFIG, user
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
 from time import sleep
-class EntrySesion(ft.TextField):
-    def __init__(self, label = 'EntrySesion', is_pass = False, icon = None):
-        super().__init__()
-        #self.input_filter = filter
-        self.width=280,
-        self.height=40,
-        self.border_radius= ft.border_radius.horizontal(left=10,right=30),
-        self.label = label,
-        #hint_text='Contraseña', es otra forma de poner el texto pero el de arriba me gusto mas
-        self.color= ft.colors.WHITE,
-        self.prefix_icon= icon, #el icono tambien podria ser lock
-        #self.text_vertical_align= -1,
-        self.password= is_pass,
-    
 class InicioSesion():
     def __init__(self, page):
         super().__init__()
@@ -42,6 +28,7 @@ class InicioSesion():
                 prefix_icon=ft.icons.PASSWORD, #el icono tambien podria ser lock
                 text_vertical_align= -1.0,
                 password= True,
+                can_reveal_password=True
             )
         self.body = ft.Container(
             ft.Row([
@@ -149,17 +136,17 @@ class InicioSesion():
 
         conx = DbConnector(config=CONFIG)
         ctrl = ControlUsuarios(conx)
-        i_user = self.entry_user.value
+        n_user = self.entry_user.value
         passw = self.entry_pass.value
-        if ctrl.authenticate_user(i_user,passw):
-            user.setter(ctrl.encontrar_usuario(i_user))
+        if ctrl.authenticate_user(n_user,passw):
             self.entry_user.value = ''
             self.entry_pass.value = ''
             self.open_banner('aprovado')
+            user.setter(ctrl.encontrar_usuario(n_user))
             sleep(1.5)
             self.close_banner()
             page.go(DIRECCIONES['inventario'])
-            print(user)
+            
         else:
             self.open_banner('error')
 

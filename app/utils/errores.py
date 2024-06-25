@@ -1,0 +1,2 @@
+class NullValues(Exception):
+    pass
