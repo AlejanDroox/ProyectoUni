@@ -601,34 +601,51 @@ class AgregarProducto(ft.Container):
         self.padding = 30
         self.border = ft.border.all()
         self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
-        self.draw_content()
+        self.conx = DbConector(CONFIG)
+        self.ctrl_productos = ControlProductos(self.conx)
+        #self.draw_content()
+    
     def draw_content(self):
+        self.erros = []
         def comprobar_cant(e):
-            try:
-                c = int(self.entry_precio_c.value)
-            except:
-                c = 0
-            try:
-                v = int(self.entry_precio_v.value)
-            except:
-                v = 0
+            try:    c = int(self.entry_precio_c.value)
+            except: c = 0
+            try:    v = int(self.entry_precio_v.value)
+            except: v = 0
+            e1 ='error_price'
+            e2 = 'error_price2'
+            e_price = [e1, e2]
             if v <= c:
                 self.entry_precio_c.color = 'red'
                 self.entry_precio_c.tooltip = 'el precio de compra no puede ser mayor al de venta'
                 self.entry_precio_v.color = 'red'
                 self.entry_precio_v.tooltip = 'el precio de venta no puede ser menor al de compra'
+                if e1 not in self.erros:
+                    self.erros.append(e1)
             elif c <= 0:
                 self.entry_precio_c.color = 'red'
                 self.entry_precio_c.tooltip = 'El precio de compra no puede ser 0 o menor'
+                if e2 not in self.erros:
+                    self.erros.append(e2)
+
             else:
                 self.entry_precio_c.color = None
                 self.entry_precio_c.tooltip = 'Precio de Compra del Producto'
                 self.entry_precio_v.color = None
                 self.entry_precio_v.tooltip = 'Precio de Venta del Producto'
-
+                for i in e_price: 
+                    if i in self.erros: self.erros.remove(i)
             self.update()
-
-            self.update()
+        def aceptar():
+            try:
+                null_values = []
+                for i in self.valores:
+                    if not i.value: 
+                        null_values.append(i.label)
+                if null_values:
+                    raise NullValues(null_values)
+                self.ctrl
+            except: pass
         self.image = ft.Image(
                 width=230, height=200, 
                 src=r'app\assets\productos\agregar_imagen.png',
@@ -653,9 +670,13 @@ class AgregarProducto(ft.Container):
         }
         self.entry_name = ft.TextField(
             label='Nombre'
+            
         )
         self.entry_descripcion = ft.TextField(
-            label='Descripcion'
+            label='Descripcion',
+            multiline=True,
+            max_length=100,
+            max_lines=3
         )
         self.entry_precio_c = ft.TextField(
             label='P. Compra',
@@ -674,7 +695,45 @@ class AgregarProducto(ft.Container):
             **style_number
         )
         self.Proevedor = ft.Dropdown(
-            label='Proveedor'
+            label='Proveedor',
+            options=[
+                ft.dropdown.Option('hola'),
+                ft.dropdown.Option('hola2'),
+                ft.dropdown.Option('hola3'),
+            ]
+        )
+        self.valores = [
+            self.entry_precio_c,
+            self.entry_precio_v,
+            self.entry_existencias,
+            self.entry_descripcion,
+            self.Proevedor]
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: aceptar())
+        container_proee = ft.Container(
+            content=ft.Column(
+                [
+                    self.Proevedor,
+                    ft.ElevatedButton("Seleccionar Imagen", on_click=self.pick_file)
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ),
+            padding=ft.padding.only(top=10,bottom=10)
+        )
+        col_number = ft.Column(
+            [
+                self.entry_precio_c, self.entry_precio_v, self.entry_existencias
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+        )
+        container_number_proee = ft.Container(
+            content=ft.Row(
+                [col_number, container_proee],
+                alignment=ft.MainAxisAlignment.SPACE_AROUND
+            ),
+            width= 480,
+            height=225
         )
         zona_edit = ft.Container(
             content=ft.Column(
@@ -682,17 +741,20 @@ class AgregarProducto(ft.Container):
                     ft.Text(value='Editar Producto'),
                     self.entry_name,
                     self.entry_descripcion,
+                    container_number_proee,
                     ft.Row(
                         [
-                            self.entry_precio_c, self.entry_precio_v, self.entry_existencias
+                            btn_cancelar, btn_aceptar
                         ],
-                        spacing=6
-                    ),
-                    ft.ElevatedButton("Select Image", on_click=self.pick_file)
-                ]
+                        alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                    )
+                ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY
             ),
             bgcolor='#D9D9D9',
-            border_radius= 18
+            border_radius= 18,
+            width=500,
+            padding=10
         )
         body = ft.Row(
             [self.zona_image, zona_edit],
@@ -724,8 +786,8 @@ class AgregarProducto(ft.Container):
     def will_unmount(self):
         self.page.overlay.remove(self.file_picker)
         self.page.update()
-    """def build(self):
-        self.draw_content()"""
+    def build(self):
+        self.draw_content()
 class Counter(ft.Container):
     def __init__(self):
         super().__init__()
