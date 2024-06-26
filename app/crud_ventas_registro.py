@@ -75,6 +75,9 @@ class DbConnector:
     def get_session(self):
         return self.SessionLocal()
 
+
+# Clase para los Clientes
+
 # Clase CRUDVentas
 class CRUDVentas:
     def __init__(self, db_session):
