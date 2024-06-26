@@ -12,11 +12,11 @@ engine = create_engine(CONFIG)
 Base = automap_base()
 
 # Refleja las tablas de la base de datos en los modelos de SQLAlchemy
-Base.prepare(engine, reflect=True)
+Base.prepare(engine)
 
 # Accede a la clase de modelo correspondiente a la tabla 'Productos'
-Producto = Base.classes.productos
 
+Producto = Base.classes.productos
 
 class ControlProductos():
     """clase que maneja las operaciones de los productos"""
@@ -24,47 +24,78 @@ class ControlProductos():
     def __init__(self, db_connector):
         self.db_connector = db_connector
 
-    def encontrar_producto(self, nombre):
-        """busca producto por nombre"""
-        return self.db_connector.session.query(Producto).filter_by(nom_Producto=nombre).first()
+    def encontrar_producto(self, nom_Producto):
+        """busca producto por nom_Producto"""
+        return self.db_connector.session.query(Producto).filter_by(nom_Producto=nom_Producto).first()
+        
 
-    def create_product(self, nombre, existencia, descripcion, valor, marca,
+
+        
+    
+    def devolver_productor(self,Producto):
+        devolver2= list(self.db_connector.session.query(Producto).all())
+        if devolver2:
+            for Producto in devolver2 :
+                    print(f"Nombre_Producto: {Producto.nom_Producto}")
+                    print(f"existencia: {Producto.Existencia}")
+                    print(f"valor_producto: {Producto.Valor_Producto}")
+                    print("-" * 20)   
+                    
+                    # no se que tiene este codigo no agarra
+        return devolver2                    
+        
+ 
+
+    def create_product(self, nom_Producto, existencia, descripcion, valor, marca,
                     id_categoria, id_proveedor, id_usuarios):
         """crea un producto"""
-        producto = self.encontrar_producto(nombre)
+        producto = self.encontrar_producto(nom_Producto)
         if not producto:
-            producto = Producto(nom_Producto=nombre, Existencia=existencia,
+            producto = Producto(nom_Producto=nom_Producto, Existencia=existencia,
                                 Desc_Producto=descripcion, Valor_Producto=valor,
-                                Marca=marca, Categoria_idCategoria=id_categoria,
-                                Proveedor_Id_provedor=id_proveedor, Users_idUsers=id_usuarios)
+                                Marca=marca,
+                                #Categoria_idCategoria=id_categoria,
+                                #Proveedor_Id_provedor=id_proveedor, 
+                                Users_idUsers=id_usuarios)
             self.db_connector.session.add(producto)
             self.db_connector.session.commit()
-            print(f"El producto {nombre} fue creado exitosamente.")
+            print(f"El producto {nom_Producto} fue creado exitosamente.")
             return True
         else:
-            print(f"El producto {nombre} ya existe.")
+            print(f"El producto {nom_Producto} ya existe.")
             return False
 
-    def update_products(self, nombre, **kwargs):
+    def update_products(self, nom_Producto, **kwargs):
+        print(Producto)
         """actualizaz los datos de un producto"""
-        producto = self.encontrar_producto(nombre)
+        producto = self.encontrar_producto(nom_Producto)
         if producto:
             for key, value in kwargs.items():
                 setattr(producto, key, value)
             self.db_connector.session.commit()
-            print(f"los datos del producto {nombre} se han actualizado")
+            print(f"los datos del producto {nom_Producto} se han actualizado")
             return True
         else:
-            print(f"El producto {nombre} no se encuentra en existencia")
+            print(f"El producto {nom_Producto} no se encuentra en existencia")
             return False
 
+
+
+
+
             # Configuración de la base de datos
-if __name__ ==' __main__':
+            
+
+if __name__ =='__main__':
+
     conexion = DbConnector(CONFIG)
 
     Base.metadata.create_all(conexion.engine)
 
     control_productos = ControlProductos(conexion)
 
-    control_productos.update_products(
-        "Tornillos4", Valor_Producto=20, Existencia=100)
+    #control_productos.update_products(
+        #"Tornillos4", Valor_Producto=20, Existencia=100)
+    
+    
+    control_productos.devolver_productor(Producto)
