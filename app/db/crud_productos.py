@@ -42,7 +42,7 @@ class ControlProductos():
                     print("-" * 20)   
                     
                     # no se que tiene este codigo no agarra
-                    
+        return devolver2                    
         
  
 
@@ -53,8 +53,10 @@ class ControlProductos():
         if not producto:
             producto = Producto(nom_Producto=nom_Producto, Existencia=existencia,
                                 Desc_Producto=descripcion, Valor_Producto=valor,
-                                Marca=marca, Categoria_idCategoria=id_categoria,
-                                Proveedor_Id_provedor=id_proveedor, Users_idUsers=id_usuarios)
+                                Marca=marca,
+                                #Categoria_idCategoria=id_categoria,
+                                #Proveedor_Id_provedor=id_proveedor, 
+                                Users_idUsers=id_usuarios)
             self.db_connector.session.add(producto)
             self.db_connector.session.commit()
             print(f"El producto {nom_Producto} fue creado exitosamente.")

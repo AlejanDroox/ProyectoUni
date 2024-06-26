@@ -7,7 +7,7 @@ import shutil
 import flet as ft
 from utils.globals import DIRECCIONES, CONFIG
 from db.db_connector import DbConnector
-from db.crud_productos import ControlProductos
+from db.crud_productos import ControlProductos, Producto
 from jaro import jaro_winkler_metric
 from utils.errores import NullValues
 
@@ -23,8 +23,8 @@ class ProductCard(ft.ExpansionPanel):
         self.image = image
         self.id = id
         self.descripcion = description
-        self.price = price
-        self.price_v = price * 1.5
+        self.price = round(float(price), 2)
+        self.price_v = round(float(price) * 1.5, 2)
         self.mini_card = ft.Container(
             content=ft.Column(
                 [
@@ -66,12 +66,12 @@ class MiniCard(ft.Container):
         self.name = name
         self.image = image
         self.id = id
-        self.price = price
+        self.price = round(float(price), 2)
         self.existencia = cantidad
         self.content=ft.Column(
                 [
                     ft.Image(src=image, width=230, height=200),
-                    ft.Text(value=f'{name}  precio:{price}'),
+                    ft.Text(value=f'{name}  precio:{self.price}'),
                     ft.Text(value=f'Disponibles {cantidad}', text_align='center'),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -132,12 +132,23 @@ class Inventario(ft.Tabs):
     def __init__(self, page:ft.page):
         super().__init__()
         self.page = page
+        self.divider_height = 50
         self.selected_index = 0
-        self.contenido()
+        self.indicator_tab_size = 6
         self.animation_duration = 400
+        self.label_color = 'white'
+        self.overlay_color = {  
+            ft.MaterialState.HOVERED: ft.colors.GREEN,
+            ft.MaterialState.FOCUSED: ft.colors.RED,
+            ft.MaterialState.DEFAULT: ft.colors.BLACK,
+        }
+        self.divider_color = GRIS_FONDOS
+        self.indicator_color = '#909090'
         self.conx = DbConnector(CONFIG)
         self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
+        self.ctrl_productos = ControlProductos(self.conx)
         self.page.dialog = self.alert_dialog
+        self.contenido()
     def contenido(self):
         def open_alert(alert):
             self.alert_dialog.change_alert(alert)
@@ -181,7 +192,7 @@ class Inventario(ft.Tabs):
             ft.Tab(
                 text="EDIT",
                 content=AgregarProducto(),
-                icon=ft.icons.EDIT_SQUARE
+                icon=ft.icons.EDIT_SQUARE,
             ),
             ft.Tab(
                 text="inventario",
@@ -205,14 +216,15 @@ class Inventario(ft.Tabs):
         self.cargar_productos(self.contenedor_productos)
 
     def cargar_productos(self,cont):
-        for i in range(18):
+        productos = self.ctrl_productos.devolver_productor(Producto)
+        for producto in productos:
             product_card = ProductCard(
                 image="app/assets/XDt.jpeg",
-                name=ferreteria_nombres[i],
-                description= ferreteria_descripciones[i], 
+                name=producto.nom_Producto,
+                description= producto.Desc_Producto, 
+                price=producto.Valor_Producto,
                 characteristics=['bueno', 'bonito', 'barato'], 
-                price=i,
-                id=i)
+                id=producto.id_Productos)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
                 elevation=8,
@@ -221,7 +233,11 @@ class Inventario(ft.Tabs):
                 controls= [product_card],
                 
             )
-            minicard = MiniCard(image='app/assets/XDt.jpeg', name= ferreteria_nombres[i], id=id, price = i, cantidad=50)
+            minicard = MiniCard(image='app/assets/XDt.jpeg',
+                name=producto.nom_Producto,
+                price=producto.Valor_Producto,
+                cantidad=50,
+                id=id)
             self.registro_ventas.products.append(minicard)
             minicard.on_click = self.registro_ventas.select
             name_product[product_card.name] = product_card
@@ -331,6 +347,7 @@ class RegistroVenta(ft.Container):
         self.products = []
         self.products_mini = []
         self.monto_total = 0
+        #self.bgcolor = GRIS_FONDOS
     def draw_contenido(self):
         def comprobar_cant(e):
             control: ft.TextField = e.control
@@ -517,7 +534,7 @@ class RegistroVenta(ft.Container):
         self.content = body
 
     def change_date(self, e):
-        print(type(self.datepicker.value))
+        #print(type(self.datepicker.value))
         e.control.page.update()
 
     # happens when example is added to the page (when user chooses the DatePicker control from the grid)
@@ -588,41 +605,64 @@ class RegistroVenta(ft.Container):
     def build(self):
         self.draw_contenido()
         
+#region COLORS
+AMARILLO ='#FFF510'
+GRIS_FONDOS = '#737373' 
 #region agregar producto
 class AgregarProducto(ft.Container):
     def __init__(self):
         super().__init__()
         self.padding = 30
+        self.bgcolor = GRIS_FONDOS
         self.border = ft.border.all()
         self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
-        self.draw_content()
+        self.conx = DbConnector(CONFIG)
+        self.ctrl_productos = ControlProductos(self.conx)
+        #self.draw_content()
+    
     def draw_content(self):
+        self.erros = []
         def comprobar_cant(e):
-            try:
-                c = int(self.entry_precio_c.value)
-            except:
-                c = 0
-            try:
-                v = int(self.entry_precio_v.value)
-            except:
-                v = 0
+            try:    c = int(self.entry_precio_c.value)
+            except: c = 0
+            try:    v = int(self.entry_precio_v.value)
+            except: v = 0
+            e1 ='error_price'
+            e2 = 'error_price2'
+            e_price = [e1, e2]
             if v <= c:
                 self.entry_precio_c.color = 'red'
                 self.entry_precio_c.tooltip = 'el precio de compra no puede ser mayor al de venta'
                 self.entry_precio_v.color = 'red'
                 self.entry_precio_v.tooltip = 'el precio de venta no puede ser menor al de compra'
+                if e1 not in self.erros:
+                    self.erros.append(e1)
             elif c <= 0:
                 self.entry_precio_c.color = 'red'
                 self.entry_precio_c.tooltip = 'El precio de compra no puede ser 0 o menor'
+                if e2 not in self.erros:
+                    self.erros.append(e2)
+
             else:
                 self.entry_precio_c.color = None
                 self.entry_precio_c.tooltip = 'Precio de Compra del Producto'
                 self.entry_precio_v.color = None
                 self.entry_precio_v.tooltip = 'Precio de Venta del Producto'
-
+                for i in e_price: 
+                    if i in self.erros: self.erros.remove(i)
             self.update()
+        def aceptar():
+            try:
+                null_values = []
+                for i in self.valores:
+                    if not i.value: 
+                        null_values.append(i.label)
+                if null_values:
+                    raise NullValues(null_values)
+                self.ctrl_productos.create_product(
 
-            self.update()
+                )
+            except: pass
         self.image = ft.Image(
                 width=230, height=200, 
                 src=r'app\assets\productos\agregar_imagen.png',
@@ -647,9 +687,13 @@ class AgregarProducto(ft.Container):
         }
         self.entry_name = ft.TextField(
             label='Nombre'
+            
         )
         self.entry_descripcion = ft.TextField(
-            label='Descripcion'
+            label='Descripcion',
+            multiline=True,
+            max_length=100,
+            max_lines=3
         )
         self.entry_precio_c = ft.TextField(
             label='P. Compra',
@@ -668,7 +712,45 @@ class AgregarProducto(ft.Container):
             **style_number
         )
         self.Proevedor = ft.Dropdown(
-            label='Proveedor'
+            label='Proveedor',
+            options=[
+                ft.dropdown.Option('hola'),
+                ft.dropdown.Option('hola2'),
+                ft.dropdown.Option('hola3'),
+            ]
+        )
+        self.valores = [
+            self.entry_precio_c,
+            self.entry_precio_v,
+            self.entry_existencias,
+            self.entry_descripcion,
+            self.Proevedor]
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: aceptar())
+        container_proee = ft.Container(
+            content=ft.Column(
+                [
+                    self.Proevedor,
+                    ft.ElevatedButton("Seleccionar Imagen", on_click=self.pick_file)
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            ),
+            padding=ft.padding.only(top=10,bottom=10)
+        )
+        col_number = ft.Column(
+            [
+                self.entry_precio_c, self.entry_precio_v, self.entry_existencias
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+        )
+        container_number_proee = ft.Container(
+            content=ft.Row(
+                [col_number, container_proee],
+                alignment=ft.MainAxisAlignment.SPACE_AROUND
+            ),
+            width= 480,
+            height=225
         )
         zona_edit = ft.Container(
             content=ft.Column(
@@ -676,17 +758,20 @@ class AgregarProducto(ft.Container):
                     ft.Text(value='Editar Producto'),
                     self.entry_name,
                     self.entry_descripcion,
+                    container_number_proee,
                     ft.Row(
                         [
-                            self.entry_precio_c, self.entry_precio_v, self.entry_existencias
+                            btn_cancelar, btn_aceptar
                         ],
-                        spacing=6
-                    ),
-                    ft.ElevatedButton("Select Image", on_click=self.pick_file)
-                ]
+                        alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                    )
+                ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY
             ),
             bgcolor='#D9D9D9',
-            border_radius= 18
+            border_radius= 18,
+            width=500,
+            padding=10
         )
         body = ft.Row(
             [self.zona_image, zona_edit],
@@ -718,8 +803,8 @@ class AgregarProducto(ft.Container):
     def will_unmount(self):
         self.page.overlay.remove(self.file_picker)
         self.page.update()
-    """def build(self):
-        self.draw_content()"""
+    def build(self):
+        self.draw_content()
 class Counter(ft.Container):
     def __init__(self):
         super().__init__()
