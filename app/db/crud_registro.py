@@ -22,8 +22,9 @@ class Producto(Base):
     nom_producto = Column(String(255), unique=True, index=True)
     Existencia = Column(Integer, nullable=False)
     Desc_Producto = Column(Text)
-    Valor_Producto = Column(Numeric(10, 2), nullable=False)
-
+    Valor_Producto_C = Column(Numeric(10, 2), nullable=False)
+    Valor_Producto_V = Column(Numeric(10, 2), nullable=False)
+    Image = Column(Text)
     ventas_relacion = relationship("VentaProducto", back_populates="producto")
 
 # Definición del modelo de Usuario

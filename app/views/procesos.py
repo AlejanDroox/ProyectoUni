@@ -18,14 +18,15 @@ Nombre: ProductCard"""
 mini_cards = []
 
 class ProductCard(ft.ExpansionPanel):
-    def __init__(self, image, name, description, characteristics, price, id):
+    def __init__(self, image, name, description, price_v, price_c, id, Existencia):
         super().__init__()
         self.name = name
         self.image = image
         self.id = id
+        self.Existencia = Existencia
         self.descripcion = description
-        self.price = round(float(price), 2)
-        self.price_v = round(float(price) * 1.5, 2)
+        self.price_c = round(float(price_c), 2)
+        self.price_v = round(float(price_v), 2)
         self.mini_card = ft.Container(
             content=ft.Column(
                 [
@@ -52,10 +53,10 @@ class ProductCard(ft.ExpansionPanel):
         self.content = ft.Column(
             controls=[
                 ft.Text(f"ID: {self.id}"),
-                ft.Text("Características:"),
-                ft.Text("  - " + ", ".join(characteristics)),
+                #ft.Text("Características:"),
+                #ft.Text("  - " + ", ".join(characteristics)),
                 ft.Text(f"Precio Venta: {self.price_v}"),
-                ft.Text(f"Precio Compra: {self.price}"),
+                ft.Text(f"Precio Compra: {self.price_c}"),
                 ft.Text(f"EXistencias: 50"),
                 ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
             ],
@@ -223,8 +224,9 @@ class Inventario(ft.Tabs):
                 image="app/assets/XDt.jpeg",
                 name=producto.nom_producto,
                 description= producto.Desc_Producto, 
-                price=producto.Valor_Producto,
-                characteristics=['bueno', 'bonito', 'barato'], 
+                price_c=producto.Valor_Producto_C,
+                price_v=producto.Valor_Producto_V,
+                Existencia = producto.Existencia,
                 id=producto.id_producto)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
@@ -236,7 +238,7 @@ class Inventario(ft.Tabs):
             )
             minicard = MiniCard(image='app/assets/XDt.jpeg',
                 name=producto.nom_producto,
-                price=producto.Valor_Producto,
+                price=producto.Valor_Producto_V,
                 cantidad=50,
                 id=producto.id_producto)
             self.registro_ventas.products.append(minicard)
@@ -678,11 +680,10 @@ class AgregarProducto(ft.Container):
                 nom_Producto=self.entry_name.value,
                 existencia=self.entry_existencias.value,
                 descripcion=self.entry_descripcion.value,
-                valor=self.entry_precio_v.value,
-                marca='',
-                id_categoria=1,
-                id_proveedor=1,
-                id_usuarios=5
+                valor_v=self.entry_precio_v.value,
+                valor_c=self.entry_precio_v.value,
+                image=self.image.src,
+                id_usuarios=1
             )
 
         self.image = ft.Image(

@@ -26,7 +26,7 @@ class ControlProductos():
 
     def encontrar_producto(self, nom_Producto):
         """busca producto por nom_Producto"""
-        return self.db_connector.session.query(Producto).filter_by(nom_Producto=nom_Producto).first()
+        return self.db_connector.session.query(Producto).filter_by(nom_producto=nom_Producto).first()
         
 
 
@@ -47,17 +47,20 @@ class ControlProductos():
         
  
 
-    def create_product(self, nom_Producto, existencia, descripcion, valor, marca,
-                    id_categoria, id_proveedor, id_usuarios):
+    def create_product(self, nom_Producto, existencia, descripcion, valor_v,valor_c,
+                    id_usuarios, image):
         """crea un producto"""
         producto = self.encontrar_producto(nom_Producto)
         if not producto:
-            producto = Producto(nom_Producto=nom_Producto, Existencia=existencia,
-                                Desc_Producto=descripcion, Valor_Producto=valor,
-                                Marca=marca,
-                                #Categoria_idCategoria=id_categoria,
-                                #Proveedor_Id_provedor=id_proveedor, 
-                                Users_idUsers=id_usuarios)
+            producto = Producto(
+                nom_producto=nom_Producto, 
+                Existencia=existencia,
+                Desc_Producto=descripcion,
+                Valor_Producto_C=valor_c,
+                Valor_Producto_V=valor_v,
+                Image=image,
+                #Users_idUsers=id_usuarios
+                )
             self.db_connector.session.add(producto)
             self.db_connector.session.commit()
             #print(f"El producto {nom_Producto} fue creado exitosamente.")
