@@ -197,7 +197,7 @@ class CRUDVentas:
             for pv in productos_venta:
                 producto = self.db_session.query(Producto).get(pv.productos_idproductos1)
                 producto.Existencia += pv.cantidad
-                self.db_session.delete()
+                self.db_session.delete(pv)
 
             self.db_session.delete(venta)
             self.db_session.commit()
@@ -232,7 +232,7 @@ class CRUDVentas:
 
 # Ejemplo de uso
 if __name__ == '__main__':
-    conexion = DbConnector(CONFIG)
+    conexion = DbConnector(DATABASE_URL)
 
     # Crea una instancia de sesión
     db_session = conexion.get_session()
@@ -242,7 +242,7 @@ if __name__ == '__main__':
 
     # Ejemplo de crear múltiples ventas
     ventas = [("Martillo", 4, 25.0), ("Clavos", 2, 10.0), ("Lijas", 6, 5.0)]
-    resultados = crud_ventas.crear_ventas_multiples(ventas, "azael", "Jane Doe", "123456789", "USD", "2024-06-23")
+    resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
     
     for resultado in resultados:
         print(resultado)
