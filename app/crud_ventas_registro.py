@@ -56,6 +56,8 @@ class VentaProducto(Base):
     ventas_idventas1 = Column(Integer, ForeignKey('ventas.idVentas'))
     productos_idproductos1 = Column(Integer, ForeignKey('productos.id_producto'))
     Users_idUsers = Column(Integer, ForeignKey('users.idUsers'))
+    cantidad = Column(Integer, nullable=False)
+    grupo = Column(Integer, nullable=False)  # Nueva columna para agrupar las ventas
 
     venta = relationship("Venta", back_populates="productos_relacion")
     producto = relationship("Producto", back_populates="ventas_relacion")
@@ -86,7 +88,12 @@ class CRUDVentas:
         """Busca usuario por nombre"""
         return self.db_session.query(User).filter_by(username=username).first()
 
-    def crear_venta(self, ventas, usuario_id, metodo_pago):
+    def obtener_nuevo_grupo(self):
+        """Obtiene el nuevo número de grupo para las ventas"""
+        ultimo_grupo = self.db_session.query(func.max(VentaProducto.grupo)).scalar()
+        return (ultimo_grupo or 0) + 1
+
+    def crear_venta(self, ventas, usuario_id, metodo_pago, fecha_venta, grupo):
         """Crea una venta para productos existentes"""
         try:
             # Verificar existencia de productos
@@ -97,9 +104,11 @@ class CRUDVentas:
 
             # Crear nueva venta
             monto_total = sum([venta['cantidad'] * venta['precio'] for venta in ventas])
+            descripcion = ', '.join([venta['nombre'] for venta in ventas])
             nueva_venta = Venta(
+                Fecha_Venta=fecha_venta,
                 Monto_venta=monto_total,
-                Desc_compra=', '.join([venta['nombre'] for venta in ventas]),
+                Desc_compra=descripcion,
                 cantidad=sum([venta['cantidad'] for venta in ventas]),
                 Metodo=metodo_pago
             )
@@ -112,7 +121,9 @@ class CRUDVentas:
                 venta_producto = VentaProducto(
                     ventas_idventas1=nueva_venta.idVentas,
                     productos_idproductos1=producto.id_producto,
-                    Users_idUsers=usuario_id
+                    Users_idUsers=usuario_id,
+                    cantidad=venta['cantidad'],
+                    grupo=grupo
                 )
                 self.db_session.add(venta_producto)
 
@@ -125,21 +136,19 @@ class CRUDVentas:
             return None, f"Error al crear la venta: {e}"
 
     def obtener_ventas(self):
-        """Obtiene todas las ventas"""
-        registros = (
-            self.db_session.query(Venta, User, VentaProducto)
-            .join(VentaProducto, Venta.idVentas == VentaProducto.ventas_idventas1)
-            .join(User, User.idUsers == VentaProducto.Users_idUsers)
-            .all()
-        )
+        """Obtiene todas las ventas agrupadas por el grupo"""
+        registros = self.db_session.query(VentaProducto.grupo, Venta, User).join(Venta, Venta.idVentas == VentaProducto.ventas_idventas1).join(User, User.idUsers == VentaProducto.Users_idUsers).group_by(VentaProducto.grupo, Venta.idVentas, User.idUsers).all()
         ventas = []
-        for venta, user, _ in registros:
+
+        for grupo, venta, user in registros:
+            productos = self.db_session.query(VentaProducto, Producto).filter(VentaProducto.grupo == grupo).join(Producto, Producto.id_producto == VentaProducto.productos_idproductos1).all()
+            descripcion_venta = {producto.nom_producto: venta_producto.cantidad for venta_producto, producto in productos}
             ventas.append({
-                "fecha": venta.Fecha_Venta,
+                "fecha": venta.Fecha_Venta.strftime("%Y-%m-%d"),
                 "cliente": user.username,
-                "Descripcion": venta.Desc_compra,
-                "Monto": venta.Monto_venta,
-                "Metodo": venta.Metodo
+                "Descripcion_Venta": descripcion_venta,
+                "monto_total": venta.Monto_venta,
+                "metodo": venta.Metodo
             })
         return ventas
 
@@ -164,21 +173,25 @@ class CRUDVentas:
             self.db_session.rollback()
             return False, f"Error al eliminar la venta: {e}"
 
-    def crear_ventas_multiples(self, ventas, username, metodo_pago):
-        """Crea múltiples ventas a la vez"""
+    def crear_ventas_multiples(self, ventas, username, metodo_pago, fecha_venta):
+        """Crea múltiples ventas a la vez en un solo registro"""
         usuario = self.encontrar_usuario(username)
         if not usuario:
             return [f"Usuario {username} no encontrado"]
 
-        mensajes = []
-        for nombre, cantidad, precio in ventas:
-            nueva_venta, mensaje = self.crear_venta([{'nombre': nombre, 'cantidad': cantidad, 'precio': precio}], usuario.idUsers, metodo_pago)
-            if nueva_venta:
-                mensajes.append(f"Venta de {cantidad} {nombre} realizada: Total {nueva_venta.Monto_venta}")
-            else:
-                mensajes.append(f"Error al realizar venta de {cantidad} {nombre}: {mensaje}")
+        # Obtener nuevo grupo
+        nuevo_grupo = self.obtener_nuevo_grupo()
 
-        return mensajes
+        # Agrupar todas las ventas en un solo registro
+        productos = [{"nombre": nombre, "cantidad": cantidad, "precio": precio} for nombre, cantidad, precio in ventas]
+
+        # Crear un solo registro de venta
+        nueva_venta, mensaje = self.crear_venta(productos, usuario.idUsers, metodo_pago, fecha_venta, nuevo_grupo)
+        
+        if nueva_venta:
+            return [f"Venta creada: Fecha {nueva_venta.Fecha_Venta}, Cliente {username}, Descripción {nueva_venta.Desc_compra}, Monto {nueva_venta.Monto_venta}, Método {nueva_venta.Metodo}"]
+        else:
+            return [f"Error al crear la venta: {mensaje}"]
 
 # Ejemplo de uso
 if __name__ == '__main__':
@@ -191,15 +204,16 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-    ventas = [("Tornillos", 2, 10.0), ("Clavos", 5, 5.0)]
-    resultados = crud_ventas.crear_ventas_multiples(ventas, "yosnel", "USD")
+    ventas = [("Martillo", 8, 25.0), ("Clavos", 6, 10.0), ("Lijas", 1, 5.0)]
+    resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "USD", "2024-06-23")
     
     for resultado in resultados:
         print(resultado)
 
     # Obtener y mostrar todas las ventas
     ventas_registradas = crud_ventas.obtener_ventas()
-    print(ventas_registradas)
+    for registro in ventas_registradas:
+        print(registro)
 
     # Cierra la sesión de la base de datos
     db_session.close()
