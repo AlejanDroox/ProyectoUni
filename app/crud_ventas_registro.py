@@ -178,7 +178,7 @@ class CRUDVentas:
             ventas.append({
                 "fecha": venta.Fecha_Venta.strftime("%Y-%m-%d"),
                 "cliente": cliente.nombre_cliente,
-                "numero_identificacion": cliente.numero_identificacion,
+                "Cedula": cliente.numero_identificacion,
                 "Descripcion_Venta": descripcion_venta,
                 "monto_total": venta.Monto_venta,
                 "metodo": venta.Metodo
