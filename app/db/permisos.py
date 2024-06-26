@@ -14,7 +14,7 @@ engine = create_engine(CONFIG)
 Base = automap_base()
 
 # Refleja las tablas de la base de datos en los modelos de SQLAlchemy
-Base.prepare(engine, reflect=True)
+Base.prepare(engine)
 
 # Accede a la clase de modelo correspondiente a la tabla 'Usuarios'
 Usuario = Base.classes.users

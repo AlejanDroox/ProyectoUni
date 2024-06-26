@@ -1,55 +1,81 @@
-import flet as ft
-
-class ProductCard(ft.ExpansionPanel):
-    def __init__(self, image, name, description, characteristics, price):
-        super().__init__()
-        hed_content = ft.Container(
-            ft.Column(
-            [
-                ft.Image(src=image, width=200, height=200),
-                ft.Text(name),
-                ft.Text(description),
-            ],
-            alignment=ft.MainAxisAlignment.START,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        ),
-        padding=ft.padding.only(bottom=10)
-        )
-        self.header = hed_content
-        self.content = ft.Column(
-            controls=[
-                ft.Text("Características:"),
-                ft.Text("  - " + ", ".join(characteristics)),
-                ft.Text(f"Precio Venta: {price}"),
-                ft.Text(f"Precio Compra: {price}"),
-                ft.Text(f"EXistencias: 50"),
-                ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
-                ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
-            ]
-        )
-
-BODY_PRUEBAS = ft.Container(
+import flet
+from flet import (
+    ElevatedButton,
+    FilePicker,
+    FilePickerResultEvent,
+    Page,
+    Row,
+    Text,
+    icons,
 )
-def main(page: ft.Page):
+BODY_PRUEBAS = flet.Container()
 
+def main(page: Page):
+    # Pick files dialog
+    def pick_files_result(e: FilePickerResultEvent):
+        selected_files.value = (
+            ", ".join(map(lambda f: f.name, e.files)) if e.files else "Cancelled!"
+        )
+        selected_files.update()
 
-    product_card = ProductCard(
-        image=r"./app/",
-        name="Producto XYZ",
-        description="Descripción del producto",
-        characteristics=["Peso: 1kg", "Material: Plástico"],
-        price="$10.99",
+    pick_files_dialog = FilePicker(on_result=pick_files_result)
+    selected_files = Text()
+
+    # Save file dialog
+    def save_file_result(e: FilePickerResultEvent):
+        save_file_path.value = e.path if e.path else "Cancelled!"
+        save_file_path.update()
+
+    save_file_dialog = FilePicker(on_result=save_file_result)
+    save_file_path = Text()
+
+    # Open directory dialog
+    def get_directory_result(e: FilePickerResultEvent):
+        directory_path.value = e.path if e.path else "Cancelled!"
+        directory_path.update()
+
+    get_directory_dialog = FilePicker(on_result=get_directory_result)
+    directory_path = Text()
+
+    # hide all dialogs in overlay
+    page.overlay.extend([pick_files_dialog, save_file_dialog, get_directory_dialog])
+
+    page.add(
+        Row(
+            [
+                ElevatedButton(
+                    "Pick files",
+                    icon=icons.UPLOAD_FILE,
+                    on_click=lambda _: pick_files_dialog.pick_files(
+                        allow_multiple=True
+                    ),
+                ),
+                selected_files,
+            ]
+        ),
+        Row(
+            [
+                ElevatedButton(
+                    "Save file",
+                    icon=icons.SAVE,
+                    on_click=lambda _: save_file_dialog.save_file(),
+                    disabled=page.web,
+                ),
+                save_file_path,
+            ]
+        ),
+        Row(
+            [
+                ElevatedButton(
+                    "Open directory",
+                    icon=icons.FOLDER_OPEN,
+                    on_click=lambda _: get_directory_dialog.get_directory_path(),
+                    disabled=page.web,
+                ),
+                directory_path,
+            ]
+        ),
     )
-    panel = ft.ExpansionPanelList(
-        expand_icon_color=ft.colors.AMBER,
-        elevation=8,
-        divider_color=ft.colors.AMBER,
-        width=300,
-        controls= [product_card]
-    )
 
-    page.theme_mode = 'light'
-    page.add(ft.Row([panel,panel]))
-    page.scroll = ft.ScrollMode.ALWAYS
-if __name__ == '__main__':
-    ft.app(target=main)
+
+#flet.app(target=main)
