@@ -106,9 +106,9 @@ class CRUDVentas:
         """Busca usuario por nombre"""
         return self.db_session.query(User).filter_by(username=username).first()
 
-    def encontrar_cliente(self, nombre_cliente, numero_identificacion):
+    def encontrar_cliente(self, numero_identificacion):
         """Busca cliente por nombre e identificación"""
-        return self.db_session.query(DatosCliente).filter_by(nombre_cliente=nombre_cliente, numero_identificacion=numero_identificacion).first()
+        return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
 
     def crear_cliente(self, nombre_cliente, numero_identificacion):
         """Crea un nuevo cliente si no existe"""
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-    ventas = [("Martillo", 4, 25.0), ("Clavos", 2, 10.0), ("Lijas", 6, 5.0)]
+    ventas = [("Martillo", 1, 25.0), ("Clavos", 1, 10.0), ("Lijas", 1, 5.0)]
     resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
     
     for resultado in resultados:
