@@ -393,7 +393,7 @@ class RegistroVenta(ft.Container):
             if self.entry_cant.color != 'red':
                 n = self.entry_producto.value
                 c = int(self.entry_cant.value)
-                
+                repeat = False
                 registro_product = f'- {self.entry_producto.value} : {self.entry_cant.value} \n'
                 self.actualizar_celda(0,2, registro_product)
                 for i in self.products:
@@ -405,8 +405,14 @@ class RegistroVenta(ft.Container):
                         monto_total_text.value = f'Monto Total: {self.monto_total} bs'
                         self.actualizar_celda(0,3, self.monto_total)
                         break
+                        
                 producto = (n,c,p)
-                self.productos_venta.append(producto)
+                for p in self.productos_venta():
+                    if p[0] == n: 
+                        p[1] += c
+                        repeat = True
+                        break
+                if not repeat: self.productos_venta.append(producto)
                 self.entry_producto.value = ''
                 self.entry_producto.disabled = False
                 self.entry_cant.disabled = True
