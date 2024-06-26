@@ -31,8 +31,8 @@ class ProductCard(ft.ExpansionPanel):
             content=ft.Column(
                 [
                     ft.Image(src=self.image, width=230, height=200),
-                    ft.Text(name),
-                    ft.Text(description),
+                    ft.Text(self.name),
+                    ft.Text(self.descripcion),
                     ft.IconButton(icon=ft.icons.EDIT)
                 ]
             )
@@ -57,7 +57,7 @@ class ProductCard(ft.ExpansionPanel):
                 #ft.Text("  - " + ", ".join(characteristics)),
                 ft.Text(f"Precio Venta: {self.price_v}"),
                 ft.Text(f"Precio Compra: {self.price_c}"),
-                ft.Text(f"EXistencias: 50"),
+                ft.Text(f"EXistencias: {self.Existencia}"),
                 ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
             ],
         )
@@ -73,8 +73,8 @@ class MiniCard(ft.Container):
         self.content=ft.Column(
                 [
                     ft.Image(src=image, width=230, height=200),
-                    ft.Text(value=f'{name}  precio:{self.price}'),
-                    ft.Text(value=f'Disponibles {self.existencia}', text_align='center'),
+                    ft.Text(value=f'{name}', size=12, text_align='justify'),
+                    ft.Text(value=f'Precio:{self.price} Disponibles {self.existencia}', text_align='center'),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -102,12 +102,10 @@ class LineaProductos():
                 self.lineas[-1].controls.append(producto)
             else:
                 linea.controls.append(producto)
-                linea.key = str(cantidad)
                 self.lineas.append(linea)
             #self.lineas[-1].controls.append(producto.card)
         except IndexError:
             linea.controls.append(producto)
-            linea.key = '0'
             self.lineas.append(linea)
     def search(self, serch):
         if len(serch) >= 1:
@@ -128,6 +126,8 @@ class LineaProductos():
                 for p in i.controls:
                     p.visible = True
                     p.update()
+    def reset(self):
+        self.lineas.clear()
 # region Inventario
 class Inventario(ft.Tabs):
 
@@ -148,7 +148,6 @@ class Inventario(ft.Tabs):
         self.indicator_color = '#909090'
         self.conx = DbConnector(CONFIG)
         self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
-        self.ctrl_productos = ControlProductos(self.conx)
         self.page.dialog = self.alert_dialog
         self.contenido()
     def contenido(self):
@@ -166,6 +165,11 @@ class Inventario(ft.Tabs):
             icon=ft.icons.CREATE,
             on_click= lambda _: open_alert('agg')
         )
+        btn_reload = ft.TextButton(
+            text='Refrescar Inventario',
+            icon=ft.icons.CHANGE_CIRCLE,
+            on_click= lambda _: self.cargar_productos()
+        )
         self.contenedor_productos = LineaProductos()
         tab_inventario = ft.Container(
             ft.Row([
@@ -173,7 +177,7 @@ class Inventario(ft.Tabs):
                     [
                         ft.Row(
                             [
-                                self.entry_search, btn_create
+                                self.entry_search, btn_create, btn_reload
                             ]
                         ),
                         ft.Container(
@@ -189,11 +193,11 @@ class Inventario(ft.Tabs):
             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
             ),
         )
-        self.registro_ventas = RegistroVenta()
+        self.registro_ventas = RegistroVenta(self.cargar_productos)
         self.tabs=[
             ft.Tab(
                 text="EDIT",
-                content=AgregarProducto(),
+                content=AgregarProducto(self.cargar_productos),
                 icon=ft.icons.EDIT_SQUARE,
             ),
             ft.Tab(
@@ -215,9 +219,17 @@ class Inventario(ft.Tabs):
             
         ]
         self.expand=1
-        self.cargar_productos(self.contenedor_productos)
+        self.cargar_productos()
 
-    def cargar_productos(self,cont):
+    def cargar_productos(self):
+        self.conx.reopen_session
+        self.ctrl_productos = ControlProductos(self.conx)
+        if self.registro_ventas.products:
+            self.registro_ventas.products.clear()
+        if self.contenedor_productos.contenido.controls:
+            #self.contenedor_productos.lineas = []
+            #self.contenedor_productos.contenido.controls = sel
+            self.contenedor_productos.reset()
         productos = self.ctrl_productos.devolver_productor(Producto)
         for producto in productos:
             product_card = ProductCard(
@@ -243,9 +255,9 @@ class Inventario(ft.Tabs):
                 id=producto.id_producto)
             self.registro_ventas.products.append(minicard)
             minicard.on_click = self.registro_ventas.select
-            name_product[product_card.name] = product_card
             self.contenedor_productos.agg_card(panel)
-            self.page.update()
+        self.conx.close_session()
+        self.page.update()
 
     def search(self):
         try:
@@ -344,14 +356,14 @@ class PanelAlerts(ft.AlertDialog):
         self.page.update()
 #region RegistroVentas
 class RegistroVenta(ft.Container):
-    def __init__(self):
+    def __init__(self, refrehs):
         super().__init__()
         #self.border=ft.border.all(color='#BABABA', width=2.5)
         self.products = []
         self.products_mini = []
         self.monto_total = 0
+        self.refrehs = lambda _: refresh
         self.conx = DbConnectorRV(CONFIG)
-        self.ctrl_registro = CRUDVentas(self.conx.get_session())
         #self.bgcolor = GRIS_FONDOS
     def draw_contenido(self):
         self.productos_venta = []
@@ -388,6 +400,7 @@ class RegistroVenta(ft.Container):
                     i:MiniCard
                     if i.name == self.entry_producto.value:
                         p = round(float(i.price),2)
+                        i.existencia -= c
                         self.monto_total += i.price * int(self.entry_cant.value)
                         monto_total_text.value = f'Monto Total: {self.monto_total} bs'
                         self.actualizar_celda(0,3, self.monto_total)
@@ -602,6 +615,8 @@ class RegistroVenta(ft.Container):
                 self.table.rows[fila].cells[columna].content.value = valor
             self.table.update()
     def create_registro(self):
+        self.conx.reopen_session()
+        self.ctrl_registro = CRUDVentas(self.conx.get_session())
         try:
             registro = {
                 'fecha': self.table.rows[0].cells[0].content.value,
@@ -620,6 +635,8 @@ class RegistroVenta(ft.Container):
             print(registro)
         except NullValues:
             pass
+        self.conx.close_session()
+        self.refrehs()
     def build(self):
         self.draw_contenido()
         
@@ -628,10 +645,11 @@ AMARILLO ='#FFF510'
 GRIS_FONDOS = '#737373' 
 #region agregar producto
 class AgregarProducto(ft.Container):
-    def __init__(self):
+    def __init__(self, cargar_productos):
         super().__init__()
         self.padding = 30
         self.bgcolor = GRIS_FONDOS
+        self.cargar_productos = cargar_productos
         self.border = ft.border.all()
         self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
         self.conx = DbConnector(CONFIG)
@@ -669,7 +687,7 @@ class AgregarProducto(ft.Container):
                     null_values.append(i.label)
             if null_values:
                 raise NullValues(null_values)
-            self.ctrl_productos.create_product(
+            if self.ctrl_productos.create_product(
                 nom_Producto=self.entry_name.value,
                 existencia=self.entry_existencias.value,
                 descripcion=self.entry_descripcion.value,
@@ -677,7 +695,8 @@ class AgregarProducto(ft.Container):
                 valor_c=self.entry_precio_v.value,
                 image=self.image.src,
                 id_usuarios=1
-            )
+                ):
+                self.cargar_productos()
 
         self.image = ft.Image(
                 width=230, height=200, 
@@ -708,7 +727,7 @@ class AgregarProducto(ft.Container):
         self.entry_descripcion = ft.TextField(
             label='Descripcion',
             multiline=True,
-            max_length=100,
+            max_length=150,
             max_lines=3
         )
         self.entry_precio_c = ft.TextField(

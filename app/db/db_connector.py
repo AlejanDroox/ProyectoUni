@@ -15,6 +15,11 @@ class DbConnector:
         """cierra la Conexion """
         if self.session:
             self.session.close()
+    def reopen_session(self):
+        """reabre la Conexion """
+        if not self.session:
+            session = sessionmaker(bind=self.engine)
+            self.session = session()
 class DbConnectorRV:
     def __init__(self, db_url):
         self.engine = create_engine(db_url)
@@ -22,3 +27,13 @@ class DbConnectorRV:
 
     def get_session(self):
         return self.SessionLocal()
+    
+    def close_session(self):
+        """cierra la Conexion """
+        if self.SessionLocal:
+            self.SessionLocal.close()
+    def reopen_session(self):
+        """reabre la Conexion """
+        if not self.SessionLocal:
+            SessionLocal = sessionmaker(bind=self.engine)
+            self.SessionLocal = session()
