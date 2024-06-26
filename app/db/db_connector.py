@@ -24,16 +24,18 @@ class DbConnectorRV:
     def __init__(self, db_url):
         self.engine = create_engine(db_url)
         self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-
+        self.session = None
+        
     def get_session(self):
-        return self.SessionLocal()
-    
+        if not self.session:
+            self.session = self.SessionLocal()
+        return self.session
+
     def close_session(self):
-        """cierra la Conexion """
-        if self.SessionLocal:
-            self.SessionLocal.close()
+        if self.session:
+            self.session.close()
+            self.session = None
+
     def reopen_session(self):
-        """reabre la Conexion """
-        if not self.SessionLocal:
-            SessionLocal = sessionmaker(bind=self.engine)
-            self.SessionLocal = session()
+        self.close_session()
+        self.get_session()

@@ -70,11 +70,12 @@ class MiniCard(ft.Container):
         self.id = id
         self.price = round(float(price), 2)
         self.existencia = cantidad
+        self.text_p_e = ft.Text(value=f'Precio:{self.price} Disponibles {self.existencia}', text_align='center')
         self.content=ft.Column(
                 [
                     ft.Image(src=image, width=230, height=200),
                     ft.Text(value=f'{name}', size=12, text_align='justify'),
-                    ft.Text(value=f'Precio:{self.price} Disponibles {self.existencia}', text_align='center'),
+                    self.text_p_e
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -83,6 +84,11 @@ class MiniCard(ft.Container):
         self.bgcolor = '#D3D3D3'
         self.border_radius = 18
         self.height = 275
+    def actualizar_cant(self, cant):
+        self.existencia -= cant
+        self.text_p_e.value=f'Precio:{self.price} Disponibles {self.existencia}'
+        self.update()
+        
 class LineaProductos():
     """Contiene las card generadas en la clase producto
     de manera ordenada y en scroll"""
@@ -400,14 +406,14 @@ class RegistroVenta(ft.Container):
                     i:MiniCard
                     if i.name == self.entry_producto.value:
                         p = round(float(i.price),2)
-                        i.existencia -= c
+                        i.actualizar_cant(c)
                         self.monto_total += i.price * int(self.entry_cant.value)
                         monto_total_text.value = f'Monto Total: {self.monto_total} bs'
                         self.actualizar_celda(0,3, self.monto_total)
                         break
                         
                 producto = (n,c,p)
-                for p in self.productos_venta():
+                for p in self.productos_venta:
                     if p[0] == n: 
                         p[1] += c
                         repeat = True
@@ -465,7 +471,6 @@ class RegistroVenta(ft.Container):
             ],
             on_change= lambda _: self.actualizar_celda(0,4, metodo_pago.value)
         )
-        counter = Counter()
         headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
 
         # Crear las filas de la tabla (una fila vacía para empezar)
@@ -552,7 +557,7 @@ class RegistroVenta(ft.Container):
                 ),
                 ft.Row(
                     [
-                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar, counter
+                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
@@ -635,14 +640,16 @@ class RegistroVenta(ft.Container):
             for i in registro.values():
                 if not i: raise NullValues()
             self.ctrl_registro.crear_ventas_multiples(
-                self.productos_venta,
-                user.username,
-                metodo_pago=registro['metodo'])
-            print(registro)
+                ventas=self.productos_venta,
+                username=user.username,
+                nombre_cliente='pedro',
+                numero_identificacion=registro['cliente'],
+                metodo_pago=registro['metodo'],
+                fecha_venta=registro['fecha'])
         except NullValues:
             pass
         self.conx.close_session()
-        self.refrehs()
+        #self.refrehs()
     def build(self):
         self.draw_contenido()
         
