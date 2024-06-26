@@ -16,7 +16,7 @@ name_product = {}
 """Contendra todos los productos en formato
 Nombre: ProductCard"""
 mini_cards = []
-
+FILTER_PRICE = ft.InputFilter(allow=True, regex_string=r"[0-9,]{1,3}", replacement_string="")
 class ProductCard(ft.ExpansionPanel):
     def __init__(self, image, name, description, price_v, price_c, id, Existencia):
         super().__init__()
@@ -74,7 +74,7 @@ class MiniCard(ft.Container):
                 [
                     ft.Image(src=image, width=230, height=200),
                     ft.Text(value=f'{name}  precio:{self.price}'),
-                    ft.Text(value=f'Disponibles {cantidad}', text_align='center'),
+                    ft.Text(value=f'Disponibles {self.existencia}', text_align='center'),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -221,7 +221,7 @@ class Inventario(ft.Tabs):
         productos = self.ctrl_productos.devolver_productor(Producto)
         for producto in productos:
             product_card = ProductCard(
-                image="app/assets/XDt.jpeg",
+                image=producto.Image,
                 name=producto.nom_producto,
                 description= producto.Desc_Producto, 
                 price_c=producto.Valor_Producto_C,
@@ -236,15 +236,15 @@ class Inventario(ft.Tabs):
                 controls= [product_card],
                 
             )
-            minicard = MiniCard(image='app/assets/XDt.jpeg',
+            minicard = MiniCard(image=producto.Image,
                 name=producto.nom_producto,
                 price=producto.Valor_Producto_V,
-                cantidad=50,
+                cantidad=producto.Existencia,
                 id=producto.id_producto)
             self.registro_ventas.products.append(minicard)
             minicard.on_click = self.registro_ventas.select
             name_product[product_card.name] = product_card
-            cont.agg_card(panel)
+            self.contenedor_productos.agg_card(panel)
             self.page.update()
 
     def search(self):
@@ -641,33 +641,26 @@ class AgregarProducto(ft.Container):
     def draw_content(self):
         self.erros = []
         def comprobar_cant(e):
-            try:    c = int(self.entry_precio_c.value)
+            try:    c = float(self.entry_precio_c.value)
             except: c = 0
-            try:    v = int(self.entry_precio_v.value)
+            try:    v = float(self.entry_precio_v.value)
             except: v = 0
-            e1 ='error_price'
-            e2 = 'error_price2'
-            e_price = [e1, e2]
             if v <= c:
                 self.entry_precio_c.color = 'red'
                 self.entry_precio_c.tooltip = 'el precio de compra no puede ser mayor al de venta'
                 self.entry_precio_v.color = 'red'
                 self.entry_precio_v.tooltip = 'el precio de venta no puede ser menor al de compra'
-                if e1 not in self.erros:
-                    self.erros.append(e1)
+
             elif c <= 0:
                 self.entry_precio_c.color = 'red'
                 self.entry_precio_c.tooltip = 'El precio de compra no puede ser 0 o menor'
-                if e2 not in self.erros:
-                    self.erros.append(e2)
+
 
             else:
                 self.entry_precio_c.color = None
                 self.entry_precio_c.tooltip = 'Precio de Compra del Producto'
                 self.entry_precio_v.color = None
                 self.entry_precio_v.tooltip = 'Precio de Venta del Producto'
-                for i in e_price: 
-                    if i in self.erros: self.erros.remove(i)
             self.update()
         def aceptar():
             null_values = []
@@ -706,7 +699,7 @@ class AgregarProducto(ft.Container):
             'border_radius':0,
             'border':ft.InputBorder.UNDERLINE,
             'filled':True,
-            'input_filter':ft.NumbersOnlyInputFilter()
+            'input_filter': ft.InputFilter(allow=True, regex_string=r"[0-9\.]", replacement_string="")
         }
         self.entry_name = ft.TextField(
             label='Nombre'
