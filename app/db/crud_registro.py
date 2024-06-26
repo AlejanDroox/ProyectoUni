@@ -107,9 +107,9 @@ class CRUDVentas:
         """Busca usuario por nombre"""
         return self.db_session.query(User).filter_by(username=username).first()
 
-    def encontrar_cliente(self, numero_identificacion):
+    def encontrar_cliente(self, nombre_cliente, numero_identificacion):
         """Busca cliente por nombre e identificación"""
-        return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
+        return self.db_session.query(DatosCliente).filter_by(nombre_cliente=nombre_cliente, numero_identificacion=numero_identificacion).first()
 
     def crear_cliente(self, nombre_cliente, numero_identificacion):
         """Crea un nuevo cliente si no existe"""
@@ -197,7 +197,7 @@ class CRUDVentas:
             for pv in productos_venta:
                 producto = self.db_session.query(Producto).get(pv.productos_idproductos1)
                 producto.Existencia += pv.cantidad
-                self.db_session.delete()
+                self.db_session.delete(pv)
 
             self.db_session.delete(venta)
             self.db_session.commit()
@@ -232,7 +232,7 @@ class CRUDVentas:
 
 # Ejemplo de uso
 if __name__ == '__main__':
-    conexion = DbConnector(CONFIG)
+    conexion = DbConnector(DATABASE_URL)
 
     # Crea una instancia de sesión
     db_session = conexion.get_session()
@@ -241,10 +241,8 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-
     ventas = [("Martillo", 4, 25.0), ("Clavos", 2, 10.0), ("Lijas", 6, 5.0)]
-    resultados = crud_ventas.crear_ventas_multiples(ventas, "azael", "Jane Doe", "123456789", "USD", "2024-06-23")
-
+    resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
     
     for resultado in resultados:
         print(resultado)
