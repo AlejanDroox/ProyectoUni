@@ -5,9 +5,10 @@ import datetime
 import os
 import shutil
 import flet as ft
-from utils.globals import DIRECCIONES, CONFIG
-from db.db_connector import DbConnector
+from utils.globals import DIRECCIONES, CONFIG, user
+from db.db_connector import DbConnector,DbConnectorRV
 from db.crud_productos import ControlProductos, Producto
+from db.crud_registro import CRUDVentas
 from jaro import jaro_winkler_metric
 from utils.errores import NullValues
 
@@ -220,11 +221,11 @@ class Inventario(ft.Tabs):
         for producto in productos:
             product_card = ProductCard(
                 image="app/assets/XDt.jpeg",
-                name=producto.nom_Producto,
+                name=producto.nom_producto,
                 description= producto.Desc_Producto, 
                 price=producto.Valor_Producto,
                 characteristics=['bueno', 'bonito', 'barato'], 
-                id=producto.id_Productos)
+                id=producto.id_producto)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
                 elevation=8,
@@ -234,10 +235,10 @@ class Inventario(ft.Tabs):
                 
             )
             minicard = MiniCard(image='app/assets/XDt.jpeg',
-                name=producto.nom_Producto,
+                name=producto.nom_producto,
                 price=producto.Valor_Producto,
                 cantidad=50,
-                id=id)
+                id=producto.id_producto)
             self.registro_ventas.products.append(minicard)
             minicard.on_click = self.registro_ventas.select
             name_product[product_card.name] = product_card
@@ -347,8 +348,11 @@ class RegistroVenta(ft.Container):
         self.products = []
         self.products_mini = []
         self.monto_total = 0
+        self.conx = DbConnectorRV(CONFIG)
+        self.ctrl_registro = CRUDVentas(self.conx.get_session())
         #self.bgcolor = GRIS_FONDOS
     def draw_contenido(self):
+        self.productos_venta = []
         def comprobar_cant(e):
             control: ft.TextField = e.control
             for i in self.products:
@@ -371,16 +375,23 @@ class RegistroVenta(ft.Container):
             self.update()
         
         def add_product():
+            
             if self.entry_cant.color != 'red':
+                n = self.entry_producto.value
+                c = int(self.entry_cant.value)
+                
                 registro_product = f'- {self.entry_producto.value} : {self.entry_cant.value} \n'
                 self.actualizar_celda(0,2, registro_product)
                 for i in self.products:
                     i:MiniCard
                     if i.name == self.entry_producto.value:
+                        p = round(float(i.price),2)
                         self.monto_total += i.price * int(self.entry_cant.value)
                         monto_total_text.value = f'Monto Total: {self.monto_total} bs'
                         self.actualizar_celda(0,3, self.monto_total)
                         break
+                producto = (n,c,p)
+                self.productos_venta.append(producto)
                 self.entry_producto.value = ''
                 self.entry_producto.disabled = False
                 self.entry_cant.disabled = True
@@ -593,13 +604,18 @@ class RegistroVenta(ft.Container):
             registro = {
                 'fecha': self.table.rows[0].cells[0].content.value,
                 'cliente': self.table.rows[0].cells[1].content.value,
-                'descripcion': self.descripcion_venta.value,
+                'descripcion': self.productos_venta,
                 'monto': self.table.rows[0].cells[3].content.value,
                 'metodo': self.table.rows[0].cells[4].content.value,
             }
             
             for i in registro.values():
                 if not i: raise NullValues()
+            self.ctrl_registro.crear_ventas_multiples(
+                self.productos_venta,
+                user.username,
+                metodo_pago=registro['metodo'])
+            print(registro)
         except NullValues:
             pass
     def build(self):
@@ -652,17 +668,23 @@ class AgregarProducto(ft.Container):
                     if i in self.erros: self.erros.remove(i)
             self.update()
         def aceptar():
-            try:
-                null_values = []
-                for i in self.valores:
-                    if not i.value: 
-                        null_values.append(i.label)
-                if null_values:
-                    raise NullValues(null_values)
-                self.ctrl_productos.create_product(
+            null_values = []
+            for i in self.valores:
+                if not i.value: 
+                    null_values.append(i.label)
+            if null_values:
+                raise NullValues(null_values)
+            self.ctrl_productos.create_product(
+                nom_Producto=self.entry_name.value,
+                existencia=self.entry_existencias.value,
+                descripcion=self.entry_descripcion.value,
+                valor=self.entry_precio_v.value,
+                marca='',
+                id_categoria=1,
+                id_proveedor=1,
+                id_usuarios=5
+            )
 
-                )
-            except: pass
         self.image = ft.Image(
                 width=230, height=200, 
                 src=r'app\assets\productos\agregar_imagen.png',

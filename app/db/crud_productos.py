@@ -36,6 +36,7 @@ class ControlProductos():
         devolver2= list(self.db_connector.session.query(Producto).all())
         if devolver2:
             for Producto in devolver2 :
+                    break
                     print(f"Nombre_Producto: {Producto.nom_Producto}")
                     print(f"existencia: {Producto.Existencia}")
                     print(f"valor_producto: {Producto.Valor_Producto}")
@@ -59,14 +60,14 @@ class ControlProductos():
                                 Users_idUsers=id_usuarios)
             self.db_connector.session.add(producto)
             self.db_connector.session.commit()
-            print(f"El producto {nom_Producto} fue creado exitosamente.")
+            #print(f"El producto {nom_Producto} fue creado exitosamente.")
             return True
         else:
-            print(f"El producto {nom_Producto} ya existe.")
+            #print(f"El producto {nom_Producto} ya existe.")
             return False
 
     def update_products(self, nom_Producto, **kwargs):
-        print(Producto)
+        #print(Producto)
         """actualizaz los datos de un producto"""
         producto = self.encontrar_producto(nom_Producto)
         if producto:

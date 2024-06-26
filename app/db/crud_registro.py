@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String, Numeric, ForeignKey, DateTime, Enum, Text, func
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from datetime import datetime
+from utils.globals import CONFIG
 
-# Configura la cadena de conexión utilizando pymysql
-DATABASE_URL = "mysql://root:1234@localhost:3306/dbferreteria"
+
 
 # Crea el motor de SQLAlchemy
-engine = create_engine(DATABASE_URL)
+engine = create_engine(CONFIG)
 
 # Crea una sesión
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -22,9 +22,8 @@ class Producto(Base):
     nom_producto = Column(String(255), unique=True, index=True)
     Existencia = Column(Integer, nullable=False)
     Desc_Producto = Column(Text)
-    Valor_Producto_C = Column(Numeric(10, 2), nullable=False)
-    Valor_Producto_V = Column(Numeric(10, 2), nullable=False)
-    Image = Column(Text)
+    Valor_Producto = Column(Numeric(10, 2), nullable=False)
+
     ventas_relacion = relationship("VentaProducto", back_populates="producto")
 
 # Definición del modelo de Usuario
@@ -46,6 +45,7 @@ class Venta(Base):
     Desc_compra = Column(Text)
     cantidad = Column(Integer, nullable=False)
     Metodo = Column(Enum('BS', 'COP', 'USD'), nullable=False)
+
     productos_relacion = relationship("VentaProducto", back_populates="venta")
 
 # Definición del modelo de VentaProducto

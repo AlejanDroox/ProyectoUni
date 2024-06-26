@@ -15,3 +15,10 @@ class DbConnector:
         """cierra la Conexion """
         if self.session:
             self.session.close()
+class DbConnectorRV:
+    def __init__(self, db_url):
+        self.engine = create_engine(db_url)
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+
+    def get_session(self):
+        return self.SessionLocal()
