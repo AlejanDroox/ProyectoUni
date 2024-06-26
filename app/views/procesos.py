@@ -132,8 +132,18 @@ class Inventario(ft.Tabs):
     def __init__(self, page:ft.page):
         super().__init__()
         self.page = page
+        self.divider_height = 50
         self.selected_index = 0
+        self.indicator_tab_size = 6
         self.animation_duration = 400
+        self.label_color = 'white'
+        self.overlay_color = {  
+            ft.MaterialState.HOVERED: ft.colors.GREEN,
+            ft.MaterialState.FOCUSED: ft.colors.RED,
+            ft.MaterialState.DEFAULT: ft.colors.BLACK,
+        }
+        self.divider_color = GRIS_FONDOS
+        self.indicator_color = '#909090'
         self.conx = DbConnector(CONFIG)
         self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
         self.ctrl_productos = ControlProductos(self.conx)
@@ -182,7 +192,7 @@ class Inventario(ft.Tabs):
             ft.Tab(
                 text="EDIT",
                 content=AgregarProducto(),
-                icon=ft.icons.EDIT_SQUARE
+                icon=ft.icons.EDIT_SQUARE,
             ),
             ft.Tab(
                 text="inventario",
@@ -337,6 +347,7 @@ class RegistroVenta(ft.Container):
         self.products = []
         self.products_mini = []
         self.monto_total = 0
+        #self.bgcolor = GRIS_FONDOS
     def draw_contenido(self):
         def comprobar_cant(e):
             control: ft.TextField = e.control
@@ -523,7 +534,7 @@ class RegistroVenta(ft.Container):
         self.content = body
 
     def change_date(self, e):
-        print(type(self.datepicker.value))
+        #print(type(self.datepicker.value))
         e.control.page.update()
 
     # happens when example is added to the page (when user chooses the DatePicker control from the grid)
@@ -594,14 +605,18 @@ class RegistroVenta(ft.Container):
     def build(self):
         self.draw_contenido()
         
+#region COLORS
+AMARILLO ='#FFF510'
+GRIS_FONDOS = '#737373' 
 #region agregar producto
 class AgregarProducto(ft.Container):
     def __init__(self):
         super().__init__()
         self.padding = 30
+        self.bgcolor = GRIS_FONDOS
         self.border = ft.border.all()
         self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
-        self.conx = DbConector(CONFIG)
+        self.conx = DbConnector(CONFIG)
         self.ctrl_productos = ControlProductos(self.conx)
         #self.draw_content()
     
@@ -644,7 +659,9 @@ class AgregarProducto(ft.Container):
                         null_values.append(i.label)
                 if null_values:
                     raise NullValues(null_values)
-                self.ctrl
+                self.ctrl_productos.create_product(
+
+                )
             except: pass
         self.image = ft.Image(
                 width=230, height=200, 

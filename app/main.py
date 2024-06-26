@@ -23,8 +23,10 @@ def main(page: ft.Page):
             page.views.append(
                 ft.View(
                     DIRECCIONES['inventario'],
-                    controls= [ft.AppBar(title=ft.Text("Procesos"),
-                        bgcolor=ft.colors.SURFACE_VARIANT),
+                    controls= [ft.AppBar(title=ft.Text("Procesos", size=36),
+                        bgcolor='#FFF510',
+                        actions=[ft.Image(src=r'app\assets\logo.jpeg')],
+                        toolbar_height=80, center_title=True),
                         inventario],
                     drawer=menu
                 )
@@ -103,7 +105,6 @@ def main(page: ft.Page):
                     drawer=menu
                 )
             )
-
         page.update()
     # pylint: disable=unused-argument
     def view_pop(view):
@@ -118,6 +119,7 @@ def main(page: ft.Page):
     page.window_height = 960
     page.window_resizable = False
     page.window_maximizable = False
+    page.bgcolor = '#737373'
     page.vertical_alignment = 'CENTER'
     page.horizontal_alignment = 'CENTER'
     page.on_route_change = cambio
