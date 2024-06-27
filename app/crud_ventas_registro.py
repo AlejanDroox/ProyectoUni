@@ -107,9 +107,9 @@ class CRUDVentas:
         """Busca usuario por nombre"""
         return self.db_session.query(User).filter_by(username=username).first()
 
-    def encontrar_cliente(self, numero_identificacion):
+    def encontrar_cliente(self, nombre_cliente, numero_identificacion):
         """Busca cliente por nombre e identificación"""
-        return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
+        return self.db_session.query(DatosCliente).filter_by(nombre_cliente=nombre_cliente, numero_identificacion=numero_identificacion).first()
 
     def crear_cliente(self, nombre_cliente, numero_identificacion):
         """Crea un nuevo cliente si no existe"""
@@ -197,7 +197,6 @@ class CRUDVentas:
             for pv in productos_venta:
                 producto = self.db_session.query(Producto).get(pv.productos_idproductos1)
                 producto.Existencia += pv.cantidad
-                self.db_session.delete()
 
             self.db_session.delete(venta)
             self.db_session.commit()
