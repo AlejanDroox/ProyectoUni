@@ -197,6 +197,7 @@ class CRUDVentas:
             for pv in productos_venta:
                 producto = self.db_session.query(Producto).get(pv.productos_idproductos1)
                 producto.Existencia += pv.cantidad
+                self.db_session.delete(pv)
 
             self.db_session.delete(venta)
             self.db_session.commit()
@@ -240,7 +241,6 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-
     ventas = [("Martillo", 4, 25.0), ("Clavos", 2, 10.0), ("Lijas", 6, 5.0)]
     resultados = crud_ventas.crear_ventas_multiples(ventas, "azael", "Jane Doe", "123456789", "USD", "2024-06-23")
 
