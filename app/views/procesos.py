@@ -9,6 +9,7 @@ from utils.globals import DIRECCIONES, CONFIG, user
 from db.db_connector import DbConnector,DbConnectorRV
 from db.crud_productos import ControlProductos, Producto
 from db.crud_registro import CRUDVentas
+from views.colors import AMARILLO, GRIS_FONDOS
 from jaro import jaro_winkler_metric
 from utils.errores import NullValues
 
@@ -653,9 +654,7 @@ class RegistroVenta(ft.Container):
     def build(self):
         self.draw_contenido()
         
-#region COLORS
-AMARILLO ='#FFF510'
-GRIS_FONDOS = '#737373' 
+#
 #region agregar producto
 class AgregarProducto(ft.Container):
     def __init__(self, cargar_productos):
