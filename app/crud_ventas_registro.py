@@ -64,6 +64,7 @@ class VentaProducto(Base):
     producto = relationship("Producto", back_populates="ventas_relacion")
     user = relationship("User", back_populates="ventas_relacion")
 
+
 class DatosCliente(Base):
     __tablename__ = "datos_clientes"
 
@@ -77,6 +78,7 @@ class DatosCliente(Base):
 VentaProducto.cliente_id = Column(Integer, ForeignKey('datos_clientes.id_cliente'))
 VentaProducto.cliente = relationship("DatosCliente", back_populates="ventas_relacion")
 
+
 # Crea las tablas en la base de datos si no existen
 Base.metadata.create_all(engine)
 
@@ -88,6 +90,9 @@ class DbConnector:
 
     def get_session(self):
         return self.SessionLocal()
+
+
+# Clase para los Clientes
 
 # Clase CRUDVentas
 class CRUDVentas:
@@ -108,7 +113,7 @@ class CRUDVentas:
 
     def crear_cliente(self, nombre_cliente, numero_identificacion):
         """Crea un nuevo cliente si no existe"""
-        cliente = self.encontrar_cliente(numero_identificacion)
+        cliente = self.encontrar_cliente(nombre_cliente, numero_identificacion)
         if not cliente:
             cliente = DatosCliente(nombre_cliente=nombre_cliente, numero_identificacion=numero_identificacion)
             self.db_session.add(cliente)
@@ -164,26 +169,8 @@ class CRUDVentas:
             return None, f"Error al crear la venta: {e}"
 
     def obtener_ventas(self):
-        """Obtiene todas las ventas agrupadas por el grupo y ordenadas por índice descendente"""
-        registros = self.db_session.query(VentaProducto.grupo, Venta, DatosCliente).join(Venta, Venta.idVentas == VentaProducto.ventas_idventas1).join(DatosCliente, DatosCliente.id_cliente == VentaProducto.cliente_id).group_by(VentaProducto.grupo, Venta.idVentas, DatosCliente.id_cliente).order_by(Venta.idVentas.desc()).all()
-        ventas = []
-
-        for grupo, venta, cliente in registros:
-            productos = self.db_session.query(VentaProducto, Producto).filter(VentaProducto.grupo == grupo).join(Producto, Producto.id_producto == VentaProducto.productos_idproductos1).all()
-            descripcion_venta = {producto.nom_producto: venta_producto.cantidad for venta_producto, producto in productos}
-            ventas.append({
-                "fecha": venta.Fecha_Venta.strftime("%Y-%m-%d"),
-                "cliente": cliente.nombre_cliente,
-                "Cedula": cliente.numero_identificacion,
-                "Descripcion_Venta": descripcion_venta,
-                "monto_total": venta.Monto_venta,
-                "metodo": venta.Metodo
-            })
-        return ventas
-
-    def buscar_ventas_por_grupo(self, grupo):
-        """Busca ventas mediante su agrupación"""
-        registros = self.db_session.query(VentaProducto.grupo, Venta, DatosCliente).join(Venta, Venta.idVentas == VentaProducto.ventas_idventas1).join(DatosCliente, DatosCliente.id_cliente == VentaProducto.cliente_id).filter(VentaProducto.grupo == grupo).group_by(VentaProducto.grupo, Venta.idVentas, DatosCliente.id_cliente).order_by(Venta.idVentas.desc()).all()
+        """Obtiene todas las ventas agrupadas por el grupo"""
+        registros = self.db_session.query(VentaProducto.grupo, Venta, DatosCliente).join(Venta, Venta.idVentas == VentaProducto.ventas_idventas1).join(DatosCliente, DatosCliente.id_cliente == VentaProducto.cliente_id).group_by(VentaProducto.grupo, Venta.idVentas, DatosCliente.id_cliente).all()
         ventas = []
 
         for grupo, venta, cliente in registros:
@@ -254,17 +241,18 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-    ventas = [("Martillo", 1, 25.0), ("Clavos", 1, 10.0), ("Lijas", 8, 5.0)]
-    resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
+
+    ventas = [("Martillo", 4, 25.0), ("Clavos", 2, 10.0), ("Lijas", 6, 5.0)]
+    resultados = crud_ventas.crear_ventas_multiples(ventas, "azael", "Jane Doe", "123456789", "USD", "2024-06-23")
+
     
     for resultado in resultados:
         print(resultado)
 
-    # Obtener y mostrar todas las ventas ordenadas por índice descendente
+    # Obtener y mostrar todas las ventas
     ventas_registradas = crud_ventas.obtener_ventas()
     for registro in ventas_registradas:
         print(registro)
 
     # Cierra la sesión de la base de datos
     db_session.close()
-    #aaaaaaaaaaaa
