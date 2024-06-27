@@ -15,7 +15,7 @@ def main(page: ft.Page):
     inventario = Inventario(page=page)
     STYLE_APP_BAR = {
         'bgcolor':'#FFF510',
-        'actions':[ft.Image(src=r'app\assets\logo.jpeg')],
+        'actions':[ft.Image(src=r'app\assets\logo.png')],
         'toolbar_height':80, 
         'center_title':True
     }

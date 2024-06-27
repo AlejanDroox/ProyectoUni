@@ -371,6 +371,7 @@ class RegistroVenta(ft.Container):
         self.monto_total = 0
         self.refrehs = lambda _: refresh
         self.conx = DbConnectorRV(CONFIG)
+        self.bgcolor = '#D7D7D7'
         #self.bgcolor = GRIS_FONDOS
     def draw_contenido(self):
         self.productos_venta = []
@@ -414,11 +415,6 @@ class RegistroVenta(ft.Container):
                         break
                         
                 producto = (n,c,p)
-                for p in self.productos_venta:
-                    if p[0] == n: 
-                        p[1] += c
-                        repeat = True
-                        break
                 if not repeat: self.productos_venta.append(producto)
                 self.entry_producto.value = ''
                 self.entry_producto.disabled = False

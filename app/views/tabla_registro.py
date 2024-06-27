@@ -10,6 +10,7 @@ class TablaDatos(ft.DataTable):
         #self.scale = 1.5
         self.pack_rows = []   
     def agregar_datos(self, datos):
+        self.pack_rows.clear()
         row = []
         for dato in datos:
             fila = ft.DataRow(cells=[
