@@ -110,4 +110,3 @@ def leer_empleado(usuario_creador):
 
 # 
 # # usuario_creador = control_usuarios.encontrar_usuario(username)
-

@@ -1,7 +1,7 @@
 from db.db_connector import DbConnector
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
-
+from db.crud_usuarios import ControlUsuarios
 from utils.globals import CONFIG
 
 
@@ -107,8 +107,10 @@ if __name__ =='__main__':
 
     #control_productos.update_products(
         #"Tornillos4", Valor_Producto=20, Existencia=100)
+    ctrl = ControlUsuarios(conexion)
+    ctrl.create_user('azael', 'admin', '1234', 'administrador')
+    #control_productos.devolver_productos(Producto)
     
+    #control_productos.create_product("caraota",1,"wuw",25,"jonathan",1)
+
     
-    control_productos.devolver_productos(Producto)
-    
-    control_productos.create_product("caraota",1,"wuw",25,"jonathan",1)

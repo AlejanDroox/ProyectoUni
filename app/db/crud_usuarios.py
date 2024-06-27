@@ -36,17 +36,14 @@ class ControlUsuarios:
     # Inicio Create User
     def create_user(self, usuario_creador, username, password, rol_nombre):
         # Verificar si el usuario_creador puede crear un usuario
-        if permisos.crear_admin(usuario_creador):
-            print("No tienes permisos para crear usuarios.")
-            #raise NotPermisos
-            return False
+
         """crea un usuario"""
         usuario = self.encontrar_usuario(username)
         if not usuario:
             hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()) #yosnel que hace esta mierda desencripta o encripta
             nuevo_usuario = Usuario(username=username,
                             contrasena=hashed.decode('utf-8'),
-                            rol=rol_nombre)
+                            Rol=rol_nombre)
 
             self.db_connector.session.add(nuevo_usuario)
             self.db_connector.session.commit()
@@ -270,7 +267,7 @@ if __name__ == '__main__':
 
     #control_usuarios.reset_password(usuario_creador,'yosnel', '1234')
 
-    #control_usuarios.create_user(usuario_creador, 'nuevo_usuario4', 'contraseña1234', 'empleado')
+    control_usuarios.create_user(usuario_creador, 'nuevo_usuario4', 'contraseña1234', 'a')
 
 # Observacion   hay que hacer una autenticacion tambien para contrasenia ya que se pueden crear dos usuarios con contrasenias iguales
 

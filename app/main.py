@@ -33,7 +33,7 @@ def main(page: ft.Page):
                     DIRECCIONES['inventario'],
                     controls= [
                         ft.AppBar(
-                            title=ft.Text("Procesos", size=36),
+                            title=ft.Text("VENTAS", size=36),
                             **STYLE_APP_BAR),
                         inventario
                         ],
@@ -126,7 +126,7 @@ def main(page: ft.Page):
         pass
     page.on_keyboard_event = key_event
     page.window_width = 1280
-    page.window_height = 960
+    page.window_height = 720
     page.window_resizable = False
     page.window_maximizable = False
     page.bgcolor = '#737373'
@@ -137,7 +137,7 @@ def main(page: ft.Page):
     #page.go(DIRECCIONES['panel'])
     page.go(page.route)
     page.add()
-    page.title = 'Ferreteria no sea sapo'
+    page.title = 'Ferretería Sam Benito'
     page.theme_mode ='light'
 
 

@@ -84,7 +84,7 @@ class Panel_Control(ft.Container):
                     ft.FilledTonalButton("Elminar Usuario", icon='person_remove', on_click= lambda _: self.open_dialog('dell')),
                     ft.FilledTonalButton("Editar Rol de Usuario", icon="edit", on_click= lambda _: self.open_dialog('edit_rol')), 
                     ft.FilledTonalButton("Editar Status de Usuario", icon='supervised_user_circle',  on_click= lambda _: self.open_dialog('edit_status')),
-                    ft.Container(ft.Divider(thickness=2, color='white'), padding=ft.padding.only(left=10, top=240,right=10, bottom=10),),
+                    ft.Container(ft.Divider(thickness=2, color='white'), padding=ft.padding.only(left=10, top=140,right=10, bottom=10),),
                     ft.Container(
                         content=ft.Column(
                             [tabla_user],
@@ -98,7 +98,7 @@ class Panel_Control(ft.Container):
             ),
             padding=ft.padding.only(left=35, top=10),
             width=735,
-            height=725
+            height=525
         )
         self.content= ft.Row(
             [
