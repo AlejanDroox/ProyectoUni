@@ -25,7 +25,6 @@ class Panel_Control(ft.Container):
         self.contenido()
         self.padding = ft.padding.only(top=50)
         self.alignment = ft.alignment.top_center
-        self.border= ft.border.all()
         self.load_table()
         self.page.update()
     def contenido(self):
@@ -83,9 +82,9 @@ class Panel_Control(ft.Container):
                 [
                     ft.FilledTonalButton("Agregar Usuario", icon="person_add", on_click= lambda _: self.open_dialog('agg')),
                     ft.FilledTonalButton("Elminar Usuario", icon='person_remove', on_click= lambda _: self.open_dialog('dell')),
-                    ft.FilledTonalButton("Editar Rol de Usuario", icon="edit", on_click= lambda _: self.open_dialog('edit_rol')), # No me cuadra ese icono pero no se que otro poner xd
+                    ft.FilledTonalButton("Editar Rol de Usuario", icon="edit", on_click= lambda _: self.open_dialog('edit_rol')), 
                     ft.FilledTonalButton("Editar Status de Usuario", icon='supervised_user_circle',  on_click= lambda _: self.open_dialog('edit_status')),
-                    ft.Divider(thickness=2, color='white'),
+                    ft.Container(ft.Divider(thickness=2, color='white'), padding=ft.padding.only(left=10, top=240,right=10, bottom=10),),
                     ft.Container(
                         content=ft.Column(
                             [tabla_user],

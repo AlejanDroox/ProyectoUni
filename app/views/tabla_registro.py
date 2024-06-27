@@ -2,15 +2,55 @@ import flet as ft
 from db.db_connector import DbConnectorRV
 from db.crud_registro import CRUDVentas
 from utils.globals import CONFIG
+from fpdf import FPDF
+class MultiColumnPDF(FPDF):
+    def __init__(self, headers, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.headers = headers
+        self.widths = [15,15,40,15,15]
+        self.header()
+
+    def header(self):
+        # Agregar encabezados de columna
+        for i, width in enumerate(self.widths):
+            x = self.get_x()
+            self.cell(width, 10, self.headers[i], border=1, align="C")
+            self.set_x(x + width)
+        self.ln(10)
+
+    def row(self, values):
+        # Agregar valores de fila
+        for i, value in enumerate(values):
+            x = self.get_x()
+            self.cell(self.widths[i], 10, value, border=1, align="C")
+            self.set_x(x + self.widths[i])
+        self.ln(10)
+
+headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
+
 class TablaDatos(ft.DataTable):
     def __init__(self):
         super().__init__()
-        headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
         self.columns=[ft.DataColumn(ft.Text(header,size=12,)) for header in headers]
-        #self.scale = 1.5
-        self.pack_rows = []   
+        self.pack_rows = []
+        self.header_style = ft.TextStyle(color=ft.colors.WHITE, bgcolor='#402C07')
+        self.row_style = ft.TextStyle(color=ft.colors.BLACK, bgcolor='#FFF510')
+        self.row_hover_style = ft.TextStyle(color=ft.colors.BLACK, bgcolor='#C0902E')
+        self.column_spacing = 10
+        self.border = ft.border.all(1, '#734F0E')
+        self.horizontal_scrollbar = True
+        self.vertical_scrollbar = True
+        self.scroll = ft.ScrollMode.ALWAYS
+        self.height = 700
+        self.width = 1150
+        #self.data_row_color={"hovered": "0x30FF0000"},
+        self.vertical_lines=ft.BorderSide(3, "#CFCFCF")
+        self.horizontal_lines=ft.BorderSide(1, "green")
+        self.bgcolor = '#D9D9D9'
+        self.pack_rows = []
     def agregar_datos(self, datos):
         self.pack_rows.clear()
+        self.datos = []
         row = []
         for dato in datos:
             fila = ft.DataRow(cells=[
@@ -25,6 +65,15 @@ class TablaDatos(ft.DataTable):
                 ft.DataCell(ft.Text(size=18, value=dato['metodo'])),
             ])
             row.append(fila)
+            self.datos.append(
+                [
+                    dato['fecha'],
+                    dato['cliente'],
+                    self.format_descripcion_venta(dato['Descripcion_Venta']),
+                    dato['monto_total'],
+                    dato['metodo'],
+                ]
+            )
             if len(row) >= 10:
                 self.pack_rows.append(row)
                 row = []
@@ -41,7 +90,11 @@ class TablaDatos(ft.DataTable):
         for producto, cantidad in descripcion_venta.items():
             texto += f"- {producto}: {cantidad}\n"
         return texto
-
+    def generar_pdf(self):
+        pdf = MultiColumnPDF(headers=headers)
+        for i in self.datos:
+            pdf.row(i)
+        pdf.output("app/assets/pdfdd.pdf")
 class TablaRegistro(ft.Container):
     def __init__(self, page:ft.Page):
         super().__init__()
@@ -76,19 +129,20 @@ class TablaRegistro(ft.Container):
         )
         top = ft.Row(
             [
-                ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos() ),
+                ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos(), ),
 
             ]
         )
         self.content = ft.Column(
             [
-                ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos()),
+                ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos(), icon_color='white', icon_size=38),
                 self.tabla,
                 self.pagina_n
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         )
+    
     def load_datos(self):
         self.conx.reopen_session()
         self.ctrl_registro = CRUDVentas(self.conx.get_session())
@@ -96,6 +150,7 @@ class TablaRegistro(ft.Container):
         self.tabla.agregar_datos(datos=self.datos)
         self.pagina_n.hint_text = f'0-{(len(self.tabla.pack_rows)-1)}'
         self.pagina_n.visible = True
+        #elf.tabla.generar_pdf()
         self.pagina_n.update()
         self.conx.close_session()
     def build(self):

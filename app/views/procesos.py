@@ -100,6 +100,15 @@ class LineaProductos():
                                 spacing=25,
                                 height=700,
                                 width=1150,)
+        img = ft.Container(
+            content = ft.Image(
+            src="app/assets/logo.png",
+            fit=ft.ImageFit.COVER,
+            ),
+            opacity= 0.35,
+            padding=ft.padding.only(left=325, top = 100)
+        )
+        self.contenido = ft.Stack([img,self.contenido])
     def agg_card(self, producto):
         """agregar una nueva card de un producto"""
         linea = ft.Row(alignment=ft.MainAxisAlignment.SPACE_EVENLY)
@@ -167,15 +176,17 @@ class Inventario(ft.Tabs):
             icon=ft.icons.SEARCH,
             on_change= lambda _: self.contenedor_productos.search(self.entry_search.value),
         )
-        btn_create = ft.TextButton(
+        btn_create = ft.ElevatedButton(
             text='agregar producto',
             icon=ft.icons.CREATE,
-            on_click= lambda _: open_alert('agg')
+            on_click= lambda _: open_alert('agg'),
+            color='black'
         )
-        btn_reload = ft.TextButton(
+        btn_reload = ft.ElevatedButton(
             text='Refrescar Inventario',
             icon=ft.icons.CHANGE_CIRCLE,
-            on_click= lambda _: self.cargar_productos()
+            on_click= lambda _: self.cargar_productos(),
+            color='black'
         )
         self.contenedor_productos = LineaProductos()
         tab_inventario = ft.Container(
@@ -651,6 +662,7 @@ class RegistroVenta(ft.Container):
         self.draw_contenido()
         
 #
+STYLE_BUTTONS = {}
 #region agregar producto
 class AgregarProducto(ft.Container):
     def __init__(self, cargar_productos):
@@ -658,7 +670,7 @@ class AgregarProducto(ft.Container):
         self.padding = 30
         self.bgcolor = GRIS_FONDOS
         self.cargar_productos = cargar_productos
-        self.border = ft.border.all()
+        #self.border = ft.border.all()
         self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
         self.conx = DbConnector(CONFIG)
         self.ctrl_productos = ControlProductos(self.conx)
@@ -757,9 +769,9 @@ class AgregarProducto(ft.Container):
         self.Proevedor = ft.Dropdown(
             label='Proveedor',
             options=[
-                ft.dropdown.Option('hola'),
-                ft.dropdown.Option('hola2'),
-                ft.dropdown.Option('hola3'),
+                ft.dropdown.Option('MADECO'),
+                ft.dropdown.Option('ARTESANAL LUIS'),
+                ft.dropdown.Option('ASTESANAL CARLOS'),
             ]
         )
         self.valores = [
@@ -768,13 +780,14 @@ class AgregarProducto(ft.Container):
             self.entry_existencias,
             self.entry_descripcion,
             self.Proevedor]
-        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
-        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: aceptar())
+        btn_aceptar = ft.ElevatedButton(text='Aceptar', on_click=lambda _: aceptar(), color='black')
+        btn_cancelar = ft.ElevatedButton(text='Cancelar', on_click= lambda _: aceptar(),color='black')
         container_proee = ft.Container(
             content=ft.Column(
                 [
                     self.Proevedor,
-                    ft.ElevatedButton("Seleccionar Imagen", on_click=self.pick_file)
+                    ft.ElevatedButton("Seleccionar Imagen", on_click=self.pick_file,
+                        color='black')
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -785,7 +798,7 @@ class AgregarProducto(ft.Container):
             [
                 self.entry_precio_c, self.entry_precio_v, self.entry_existencias
             ],
-            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         container_number_proee = ft.Container(
             content=ft.Row(
@@ -798,7 +811,7 @@ class AgregarProducto(ft.Container):
         zona_edit = ft.Container(
             content=ft.Column(
                 [
-                    ft.Text(value='Editar Producto'),
+                    ft.Container(ft.Text(value='Datos del Producto', size=28, weight=ft.FontWeight.W_900), alignment=ft.alignment.center),
                     self.entry_name,
                     self.entry_descripcion,
                     container_number_proee,

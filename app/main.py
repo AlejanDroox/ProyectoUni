@@ -75,7 +75,8 @@ def main(page: ft.Page):
                         ft.AppBar(title=ft.Text("Registro", size=36), **STYLE_APP_BAR),
                         TablaRegistro(page)
                     ],
-                    drawer=menu
+                    drawer=menu,
+                    bgcolor=GRIS_FONDOS
                 )
             )
         elif page.route == "/app/archivos":
@@ -99,7 +100,8 @@ def main(page: ft.Page):
                         ft.AppBar(title=ft.Text("Panel De Control", size=36), **STYLE_APP_BAR),
                         Panel_Control(page=page)
                     ],
-                    drawer=menu
+                    drawer=menu,
+                    bgcolor=GRIS_FONDOS
                 )
             )
         elif page.route == DIRECCIONES['pruebas']:
