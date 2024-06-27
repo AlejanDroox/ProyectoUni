@@ -980,7 +980,7 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
             ),
             ft.NavigationDrawerDestination(
                 icon_content=ft.Icon(ft.icons.REPORT_OUTLINED),
-                label="REPORTES",
+                label="REGISTRO",
                 selected_icon=ft.icons.REPORT,
             ),
             ft.NavigationDrawerDestination(
@@ -1012,7 +1012,7 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
 iconosBarra = {
     '0': '/app/procesos',
     '1': '/app/archivos',
-    '2': '/app/reportes',
+    '2': DIRECCIONES['registro'],
     '3': '/app/ayuda',
     '4': '/app/ayuda',
     '5': '/app/panel_control',

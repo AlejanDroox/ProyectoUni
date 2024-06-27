@@ -8,7 +8,8 @@ DIRECCIONES= {
     'ayuda': '/app/ayuda',
     'archivos': '/app/archivos',
     'panel': '/app/panel_control',
-    'pruebas': 'pruebas'
+    'pruebas': 'pruebas',
+    'registro': '/app/registro'
 }
 """Direcciones de enrutamiento para flet"""
 

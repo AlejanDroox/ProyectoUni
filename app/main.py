@@ -3,6 +3,7 @@ import flet as ft
 from views.procesos import Inventario, menu_lateral
 from views.iniciosesion import InicioSesion
 from views.panel_control import Panel_Control
+from views.tabla_registro import TablaRegistro
 from utils.globals import DIRECCIONES, show_drawer
 from views.pruebas import BODY_PRUEBAS
 def main(page: ft.Page):
@@ -57,15 +58,13 @@ def main(page: ft.Page):
                     drawer=menu
                 )
             )
-        elif page.route == "/app/reportes":
+        elif page.route == DIRECCIONES['registro']:
             page.views.append(
                 ft.View(
-                    "/app/reportes",
+                    DIRECCIONES['registro'],
                     [
-                        ft.AppBar(title=ft.Text("app/reportes"), bgcolor=ft.colors.SURFACE_VARIANT),
-                        ft.ElevatedButton("Go store",
-                        on_click=lambda _: page.go(DIRECCIONES['inventario'])),
-                        ft.ElevatedButton("Menu", on_click=show_drawer),
+                        ft.AppBar(title=ft.Text("Registro"), bgcolor=ft.colors.SURFACE_VARIANT),
+                        TablaRegistro(page)
                     ],
                     drawer=menu
                 )
