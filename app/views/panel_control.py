@@ -154,13 +154,13 @@ class Panel_alerts(ft.AlertDialog):
         self.STYLE_BANNER_ERROR = {
             'bgcolor':ft.colors.AMBER_100,
             'leading':ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
-            'actions':[ft.TextButton("aceptar", on_click=close_banner)]
+            'actions':[ft.TextButton("aceptar", on_click=self.close_banner)]
         }
         self.STYLE_BANNER_FINE = {
             'bgcolor':ft.colors.BLUE_100,
             'leading':ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
             'actions':[
-                ft.TextButton("aceptar", on_click=close_banner),
+                ft.TextButton("aceptar", on_click=self.close_banner),
             ],
         }
         self.msg_error_unexp = 'Ha ocurrido un error inesperado intentelo nuevamente \n si el error persiste llama a servicio tecnico'
@@ -183,37 +183,27 @@ class Panel_alerts(ft.AlertDialog):
             new_user = entry_user.value
             passw = entry_pass.value
             rol = multi_select.value
-            if self.crtl_user.create_user(usuario_creador=user.rol, username=new_user, password=passw, rol_nombre=rol):
+            try:
+                self.crtl_user.create_user(usuario_creador=user.rol, username=new_user, password=passw, rol_nombre=rol)
                 self.page.banner = ft.Banner(
-                    bgcolor=ft.colors.BLUE_100,
-                    leading=ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
                     content=ft.Text(
                         f"Se ha agregado al usuario {new_user} de manera exitosa"
                     ),
-                    actions=[
-                        ft.TextButton("aceptar", on_click=close_banner),
-                    ],
+                    **self.STYLE_BANNER_FINE
                 )
                 show_banner_click()
-            else:
+            except ValuesExist as e:
                 self.page.banner = ft.Banner(
-                    bgcolor=ft.colors.AMBER_100,
-                    leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
-                    content=ft.Text(
-                        f"No se ha podido agregar al usuario, intente nuevamente"
-                    ),
-                    actions=[
-                        ft.TextButton("aceptar", on_click=close_banner),
-                    ],
+                    content=ft.Text(e.msg),
+                    **self.STYLE_BANNER_ERROR
                 )
                 show_banner_click()
+                
             self.close()
-        def close_banner(e):
-            self.page.banner.open = False
-            self.page.update()
         def show_banner_click():
             self.page.banner.open = True
             self.page.update()
+            self.page.banner.actions[0].focus()
         title = ft.Text("Agregar Usuario", size=48, weight=ft.FontWeight.W_900)
         entry_user = ft.TextField(label='Nombre', width=240)
         entry_pass = ft.TextField(label='Contraseña', password=True, width=240)
@@ -267,9 +257,6 @@ class Panel_alerts(ft.AlertDialog):
         self.alert_agg = body
     
     def draw_alert_dell(self):
-        def close_banner(e):
-            self.page.banner.open = False
-            self.page.update()
         def show_banner_click():
             self.page.banner.open = True
             self.page.update()
@@ -285,7 +272,7 @@ class Panel_alerts(ft.AlertDialog):
                 self.crtl_user.delete_user(usuario_creador=user, username=user_dell)
                 self.page.banner = ft.Banner(
                     content=ft.Text(
-                        f"Se ha eliminado al usuario {user} de manera exitosa"
+                        f"Se ha eliminado al usuario {user_dell} de manera exitosa"
                     ),
                     **self.STYLE_BANNER_FINE
                 )
@@ -447,6 +434,9 @@ class Panel_alerts(ft.AlertDialog):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER
             )
         self.alert_edit_status = body
+    def close_banner(self, e):
+        self.page.banner.open = False
+        self.page.update()
     def close(self):
         self.open = False
         self.page.update()

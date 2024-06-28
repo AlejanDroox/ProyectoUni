@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from db import permisos
 from utils.globals import CONFIG
-
+from utils.errores import ValuesExist
 
 # Crea el motor de SQLAlchemy
 engine = create_engine(CONFIG)
@@ -47,12 +47,9 @@ class ControlUsuarios:
 
             self.db_connector.session.add(nuevo_usuario)
             self.db_connector.session.commit()
-            print("Usuario creado exitosamente.")
-            return True
-
-        else:
-            print(f"El usuario '{username}' ya existe.")
-            return False
+            #print("Usuario creado exitosamente.")
+        else: raise ValuesExist(f'Ya hay un Usuario con el Nombre de "{username}. Intentelo Nuevamente')
+        #print(f"El usuario '{username}' ya existe.")
     # FIN CREATE USER
 
     #incio imagino que esto es puro para el inicio de sesion
@@ -107,9 +104,9 @@ class ControlUsuarios:
             if usuario:
                 self.db_connector.session.delete(usuario)
                 self.db_connector.session.commit()
-                print(f"Usuario '{username}' fue borrado correctamente.")
+                #print(f"Usuario '{username}' fue borrado correctamente.")
             else:
-                print(f"El usuario '{username}' no existe en la BD")
+                raise ValuesExist(msg=f'El usuario "{username}" no existe')
     # fin del delete_user
 
 
@@ -117,7 +114,7 @@ class ControlUsuarios:
         # editar status de usuario
 
     def edit_status_user(self,usuario_creador,username,status_nuevo):
-        if   permisos.actualizar_admin(usuario_creador.status) :
+        if   permisos.actualizar_admin(usuario_creador.rol) :
                 print("uwu")
                 usuario = self.encontrar_usuario(username)
 
