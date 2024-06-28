@@ -3,6 +3,7 @@ from utils.globals import user, CONFIG
 from db.permisos import PERMISOS
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
+from utils.errores import ValuesExist
 CONTAINER_STYLE_1 = {
     'bgcolor': '#949494',
     'border_radius': 5
@@ -150,6 +151,19 @@ class Panel_alerts(ft.AlertDialog):
             'edit_rol': self.alert_edit_rol,
             'edit_status': self.alert_edit_status,
         }
+        self.STYLE_BANNER_ERROR = {
+            'bgcolor':ft.colors.AMBER_100,
+            'leading':ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
+            'actions':[ft.TextButton("aceptar", on_click=close_banner)]
+        }
+        self.STYLE_BANNER_FINE = {
+            'bgcolor':ft.colors.BLUE_100,
+            'leading':ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
+            'actions':[
+                ft.TextButton("aceptar", on_click=close_banner),
+            ],
+        }
+        self.msg_error_unexp = 'Ha ocurrido un error inesperado intentelo nuevamente \n si el error persiste llama a servicio tecnico'
     def draw_alerts(self):
         self.draw_alert_agg()
         self.draw_alert_dell()
@@ -263,38 +277,29 @@ class Panel_alerts(ft.AlertDialog):
             user_dell = entry_user.value
             if user_dell != entry_user_r.value:
                 self.page.banner = ft.Banner(
-                    bgcolor=ft.colors.AMBER_100,
-                    leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
-                    content=ft.Text(
-                        f"los nombres no coinciden, intente nuevamente"
-                    ),
-                    actions=[
-                        ft.TextButton("aceptar", on_click=close_banner),
-                    ],
+                    content=ft.Text(f"los nombres no coinciden, intente nuevamente"),
+                    **self.STYLE_BANNER_ERROR
                 )
                 show_banner_click()
-            elif self.crtl_user.delete_user(usuario_creador=user, username=user_dell):
+            try: 
+                self.crtl_user.delete_user(usuario_creador=user, username=user_dell)
                 self.page.banner = ft.Banner(
-                    bgcolor=ft.colors.BLUE_100,
-                    leading=ft.Icon(ft.icons.CHECK, color=ft.colors.AMBER, size=40),
                     content=ft.Text(
                         f"Se ha eliminado al usuario {user} de manera exitosa"
                     ),
-                    actions=[
-                        ft.TextButton("aceptar", on_click=close_banner),
-                    ],
+                    **self.STYLE_BANNER_FINE
                 )
                 show_banner_click()
-            else:
+            except ValuesExist as e:
                 self.page.banner = ft.Banner(
-                    bgcolor=ft.colors.AMBER_100,
-                    leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.AMBER, size=40),
-                    content=ft.Text(
-                        f"No se ha podido agregar al usuario, intente nuevamente"
-                    ),
-                    actions=[
-                        ft.TextButton("aceptar", on_click=close_banner),
-                    ],
+                    content=ft.Text(e.msg),
+                    **self.STYLE_BANNER_ERROR
+                )
+                show_banner_click()
+            except:
+                self.page.banner = ft.Banner(
+                    content=ft.Text(value=self.msg_error_unexp),
+                    **self.STYLE_BANNER_ERROR
                 )
                 show_banner_click()
             self.close()
@@ -443,7 +448,5 @@ class Panel_alerts(ft.AlertDialog):
             )
         self.alert_edit_status = body
     def close(self):
-        for i in self.widgt_agg:
-            i.value = ''
         self.open = False
         self.page.update()
