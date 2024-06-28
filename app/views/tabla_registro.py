@@ -61,7 +61,7 @@ class TablaDatos(ft.DataTable):
                         scroll=ft.ScrollMode.AUTO,
                         expand=True
                     )),
-                ft.DataCell(ft.Text(size=18, value=str(dato['monto_total']))),
+                ft.DataCell(ft.Text(size=18, value=str(dato['monto_total']) + 'bs')),
                 ft.DataCell(ft.Text(size=18, value=dato['metodo'])),
             ])
             row.append(fila)

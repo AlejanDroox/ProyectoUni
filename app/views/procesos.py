@@ -5,13 +5,14 @@ import datetime
 import os
 import shutil
 import flet as ft
-from utils.globals import DIRECCIONES, CONFIG, user
+from utils.globals import DIRECCIONES, CONFIG, user, LOGO
 from db.db_connector import DbConnector,DbConnectorRV
 from db.crud_productos import ControlProductos, Producto
 from db.crud_registro import CRUDVentas
 from views.colors import AMARILLO, GRIS_FONDOS
 from jaro import jaro_winkler_metric
 from utils.errores import NullValues
+
 
 name_product = {}
 """Contendra todos los productos en formato
@@ -98,11 +99,11 @@ class LineaProductos():
         self.contenido = ft.Column(controls=self.lineas,
                                 scroll=ft.ScrollMode.ALWAYS,
                                 spacing=25,
-                                height=700,
+                                height=500,
                                 width=1150,)
         img = ft.Container(
             content = ft.Image(
-            src="app/assets/logo.png",
+            src=LOGO,
             fit=ft.ImageFit.COVER,
             ),
             opacity= 0.35,
@@ -229,11 +230,6 @@ class Inventario(ft.Tabs):
                 content=self.registro_ventas,
 
             ),
-            ft.Tab(
-                text="Tab 3",
-                icon=ft.icons.SETTINGS,
-                content=ft.Text("This is Tab 3"),
-            ),
             
         ]
         self.expand=1
@@ -315,11 +311,11 @@ class PanelAlerts(ft.AlertDialog):
             btn.selected = not btn.selected
             entry.password = not entry.password
             btn.page.update()
+        title = ft.Text("Editar ", size=48, weight=ft.FontWeight.W_900)
         def aceptar():
             new_product= entry_product.value
             passw = entry_pass.value
             rol = multi_select.value
-        title = ft.Text("Editar ", size=48, weight=ft.FontWeight.W_900)
         entry_product = ft.TextField(label='Nombre', width=240)
         entry_marca = ft.TextField(label='Marca', width=240)
         entry_descripcion = ft.TextField(label='descripcion', width=240)
@@ -380,7 +376,7 @@ class RegistroVenta(ft.Container):
         self.products = []
         self.products_mini = []
         self.monto_total = 0
-        self.refrehs = lambda _: refresh
+        self.refrehs = lambda _: refrehs
         self.conx = DbConnectorRV(CONFIG)
         self.bgcolor = '#D7D7D7'
         #self.bgcolor = GRIS_FONDOS
@@ -519,7 +515,7 @@ class RegistroVenta(ft.Container):
                                 scroll=ft.ScrollMode.ALWAYS,
                                 spacing=25,
             ),
-            height=350,
+            height=200,
             width=250,
             #bgcolor='#D9D9D9'
             )
@@ -530,7 +526,7 @@ class RegistroVenta(ft.Container):
                     ]
                 ),
             width=125,
-            padding=ft.padding.only(bottom=275),
+            padding=ft.padding.only(bottom=175),
             border=ft.border.all()
         )
         monto_total_text = ft.Text(
@@ -976,16 +972,11 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
         controls=[
             ft.Container(height=12),
             ft.NavigationDrawerDestination(
-                label="PROCESOS",
+                label="VENTAS",
                 icon=ft.icons.ENGINEERING_OUTLINED,
                 selected_icon_content=ft.Icon(ft.icons.ENGINEERING),
             ),
             ft.Divider(thickness=2),
-            ft.NavigationDrawerDestination(
-                icon_content=ft.Icon(ft.icons.INSERT_DRIVE_FILE_OUTLINED),
-                label="ARCHIVOS",
-                selected_icon=ft.icons.INSERT_DRIVE_FILE,
-            ),
             ft.NavigationDrawerDestination(
                 icon_content=ft.Icon(ft.icons.REPORT_OUTLINED),
                 label="REGISTRO",
@@ -996,11 +987,6 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
                 label="AYUDA",
                 selected_icon=ft.icons.HELP,
             ),
-            ft.NavigationDrawerDestination(
-                icon_content=ft.Icon(ft.icons.BACKUP_OUTLINED),
-                label="BACKUP",
-                selected_icon=ft.icons.BACKUP          
-            ),
             ft.Divider(thickness=2),
             ft.NavigationDrawerDestination(
                 icon_content=ft.Icon(ft.icons.ADMIN_PANEL_SETTINGS_OUTLINED),
@@ -1009,7 +995,7 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
             ),
             ft.Divider(thickness=2),
             ft.Container(
-                padding=ft.padding.only(top=450),
+                padding=ft.padding.only(top=361),
                 content= btn_close,
                 alignment=ft.alignment.bottom_center
             ),
@@ -1019,9 +1005,9 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
     return drawer
 iconosBarra = {
     '0': '/app/procesos',
-    '1': '/app/archivos',
+    '1': DIRECCIONES['registro'],
     '2': DIRECCIONES['registro'],
-    '3': '/app/ayuda',
+    '3': '/app/panel_control',
     '4': '/app/ayuda',
     '5': '/app/panel_control',
 }
