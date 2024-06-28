@@ -999,7 +999,9 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
                 content= btn_close,
                 alignment=ft.alignment.bottom_center
             ),
+            
         ],
+        bgcolor='#C1C1C1',
         on_change=hola
     )
     return drawer

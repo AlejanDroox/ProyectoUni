@@ -26,7 +26,6 @@ class Panel_Control(ft.Container):
         self.contenido()
         self.padding = ft.padding.only(top=50)
         self.alignment = ft.alignment.top_center
-        self.load_table()
         self.page.update()
     def contenido(self):
         icon = ft.CircleAvatar(
@@ -42,15 +41,21 @@ class Panel_Control(ft.Container):
                 [
                     ft.Text(
                         value=f'Usuario: {user.username}',
-                        color='black'
+                        color='black',
+                        size=24 if len(user.username) < 10 else 20,
+                        text_align=ft.TextAlign.CENTER
                     ),
                     ft.Text(
-                        value=f'Rol: {user.rol}',
-                        color='black'
+                        value=f'Estatus: {user.rol}',
+                        color='black',
+                        size=24,
+                        text_align=ft.TextAlign.CENTER
                     ),
-                ]
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
             ),
-            height=330,
+            height=130,
             width=330,
         )
         contenedor_i = ft.Container(
@@ -63,41 +68,41 @@ class Panel_Control(ft.Container):
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
             ),
             padding=ft.padding.only(top=10),
-            height=500,
+            height=300,
             width=370
         )
-        self.load_table()
         
-        tabla_user = ft.DataTable(
+        self.tabla_user = ft.DataTable(
                 columns=[
                     ft.DataColumn(ft.Text("Nombre")),
-                    ft.DataColumn(ft.Text("Rol")),
-                    ft.DataColumn(ft.Text("Status")),
+                    ft.DataColumn(ft.Text("Estatus")),
+                    ft.DataColumn(ft.Text("Estado")),
                 ],
-                rows=self.rows,
             )
-        
         contenedor_d = ft.Container(
             **CONTAINER_STYLE_1,
             content=ft.Column(
                 [
-                    ft.FilledTonalButton("Agregar Usuario", icon="person_add", on_click= lambda _: self.open_dialog('agg')),
-                    ft.FilledTonalButton("Elminar Usuario", icon='person_remove', on_click= lambda _: self.open_dialog('dell')),
-                    ft.FilledTonalButton("Editar Rol de Usuario", icon="edit", on_click= lambda _: self.open_dialog('edit_rol')), 
-                    ft.FilledTonalButton("Editar Status de Usuario", icon='supervised_user_circle',  on_click= lambda _: self.open_dialog('edit_status')),
-                    ft.Container(ft.Divider(thickness=2, color='white'), padding=ft.padding.only(left=10, top=140,right=10, bottom=10),),
+                    ft.FilledTonalButton("Agregar Usuario", icon="person_add", on_click= lambda _: self.open_dialog('agg'), width=450),
+                    ft.FilledTonalButton("Elminar Usuario", icon='person_remove', on_click= lambda _: self.open_dialog('dell'), width=450),
+                    ft.FilledTonalButton("Editar Estatus de Usuario", icon="edit", on_click= lambda _: self.open_dialog('edit_rol'), width=450),
+                    ft.FilledTonalButton("Editar Estado de Usuario", icon='supervised_user_circle',  on_click= lambda _: self.open_dialog('edit_status'), width=450),
+                    ft.Container(ft.Divider(thickness=2, color='white'), padding=ft.padding.only(left=10, top=30,right=10, bottom=2),),
+                    ft.Container(ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_table(), icon_color='white', icon_size=20), alignment=ft.Alignment(0.85,0.15)),
                     ft.Container(
                         content=ft.Column(
-                            [tabla_user],
+                            [self.tabla_user],
                             scroll=ft.ScrollMode.ALWAYS
                         ),
                         **CONTAINER_STYLE_2,
                         width=650,
-                        height=215
+                        height=215,
                     )
-                ]
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+
             ),
-            padding=ft.padding.only(left=35, top=10),
+            padding=ft.padding.only(left=35, top=10, bottom=20),
             width=735,
             height=525
         )
@@ -120,7 +125,7 @@ class Panel_Control(ft.Container):
         self.alert_dialog.open = True
         self.page.update()
     def load_table(self):
-        self.rows = []
+        self.tabla_user.rows.clear()
         for user in self.crtl_user.devolver_users():
             status = 'activo' if user.Status != '0' else 'inactivo'
             row = ft.DataRow(
@@ -130,7 +135,8 @@ class Panel_Control(ft.Container):
                     ft.DataCell(ft.Text(status)),
                 ]
             )
-            self.rows.append(row)
+            self.tabla_user.rows.append(row)
+        self.page.update()
 #region PanelAlerts
 class Panel_alerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
@@ -199,7 +205,8 @@ class Panel_alerts(ft.AlertDialog):
                 )
                 show_banner_click()
                 
-            self.close()
+            self.close(entry_pass, entry_user, multi_select)
+            self.load_table()
         def show_banner_click():
             self.page.banner.open = True
             self.page.update()
@@ -211,7 +218,7 @@ class Panel_alerts(ft.AlertDialog):
         btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
         btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
         multi_select = ft.Dropdown(
-            label= 'Rol',
+            label= 'Estatus',
             width=160,
             options= [
                 ft.dropdown.Option("administrador"),
@@ -220,7 +227,6 @@ class Panel_alerts(ft.AlertDialog):
             ], padding=ft.padding.only(left=27),
             on_change= lambda _: print(multi_select.value)
         )
-        self.widgt_agg = [entry_user,entry_pass, btn_aceptar, btn_cancelar]
         body = ft.Column(
                     [
                         title, 
@@ -289,7 +295,8 @@ class Panel_alerts(ft.AlertDialog):
                     **self.STYLE_BANNER_ERROR
                 )
                 show_banner_click()
-            self.close()
+            finally:
+                self.close(entry_user, entry_user_r)
         title = ft.Text("Eliminar Usuario", size=48, weight=ft.FontWeight.W_900)
         entry_user = ft.TextField(label='Nombre de Usuario a eliminar', width=240)
         entry_user_r = ft.TextField(label='Repetir Nombre', width=240)
@@ -323,16 +330,16 @@ class Panel_alerts(ft.AlertDialog):
         def check():
             btn_aceptar.disabled = not btn_aceptar.disabled
             self.page.update()
-        title = ft.Text("Editar Rol", size=48, weight=ft.FontWeight.W_900)
-        entry_user = ft.TextField(label='Nombre de usuario',tooltip='Nombre  del usuario a cambiar rol', width=240)
+        title = ft.Text("Editar Estatus", size=48, weight=ft.FontWeight.W_900)
+        entry_user = ft.TextField(label='Nombre de usuario',tooltip='Nombre  del usuario a cambiar Estatus', width=240)
         btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar(), disabled=True)
         btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
         btn_check = ft.CupertinoCheckbox(
-            label="Usted confirma el cambio de rol de este usuario",
+            label="Usted confirma el cambio de Estatus de este usuario",
             on_change= lambda _: check()
         )
         multi_select = ft.Dropdown(
-            label= 'Rol',
+            label= 'Estatus',
             width=160,
             options= [
                 ft.dropdown.Option("administrador"),
@@ -375,7 +382,7 @@ class Panel_alerts(ft.AlertDialog):
                 status_nuevo= 'inactivo' if user2.Status != 0 else 'activo'
             )
             self.load_table()
-            self.close()
+            self.close([entry_user, en])
             
         def check():
             btn_aceptar.disabled = not btn_aceptar.disabled
@@ -383,7 +390,7 @@ class Panel_alerts(ft.AlertDialog):
         def search_user(e):
             user = self.crtl_user.encontrar_usuario(entry_user.value)
             if user:
-                btn_check.label = f'Seguro que quiere cambiar el status de {user.username} a {'inactivo' if user.Status != 0 else 'activo'}'
+                btn_check.label = f'Seguro que quiere cambiar el Estado de {user.username} a {'inactivo' if user.Status != 0 else 'activo'}'
                 entry_user.color = None
                 entry_user.tooltip = ''
                 entry_user.update()
@@ -392,11 +399,11 @@ class Panel_alerts(ft.AlertDialog):
                 entry_user.color = 'red'
                 entry_user.tooltip = 'No se encontro al usuario'
                 entry_user.update()
-        title = ft.Text("Editar Rol", size=48, weight=ft.FontWeight.W_900)
+        title = ft.Text("Editar Estatus", size=48, weight=ft.FontWeight.W_900)
         btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar(), disabled=True)
         btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
         entry_user = ft.TextField(
-            label='Nombre de usuario',tooltip='Nombre  del usuario a cambiar status',
+            label='Nombre de usuario',tooltip='Nombre  del usuario a cambiar Estado',
             on_submit=search_user,
             width=240
             )
@@ -437,6 +444,8 @@ class Panel_alerts(ft.AlertDialog):
     def close_banner(self, e):
         self.page.banner.open = False
         self.page.update()
-    def close(self):
+    def close(self, *entrys):
+        for e in entrys:
+            e.value = ''
         self.open = False
         self.page.update()

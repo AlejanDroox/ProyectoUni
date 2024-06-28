@@ -41,7 +41,7 @@ class TablaDatos(ft.DataTable):
         self.horizontal_scrollbar = True
         self.vertical_scrollbar = True
         self.scroll = ft.ScrollMode.ALWAYS
-        self.height = 700
+        self.height = 480
         self.width = 1150
         #self.data_row_color={"hovered": "0x30FF0000"},
         self.vertical_lines=ft.BorderSide(3, "#CFCFCF")
