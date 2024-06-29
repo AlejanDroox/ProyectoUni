@@ -178,6 +178,8 @@ class Inventario(ft.Tabs):
             label='Nombre el Producto',
             icon=ft.icons.SEARCH,
             on_change= lambda _: self.contenedor_productos.search(self.entry_search.value),
+            color='white',
+            label_style={'color': 'white'}
         )
         btn_reload = ft.ElevatedButton(
             text='Refrescar Inventario',
@@ -194,7 +196,6 @@ class Inventario(ft.Tabs):
                             [
                                 self.entry_search, btn_reload
                             ],
-                            aligame
                         ),
                         ft.Container(
                             content=self.contenedor_productos.contenido,
