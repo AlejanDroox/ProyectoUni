@@ -192,8 +192,9 @@ class Inventario(ft.Tabs):
                     [
                         ft.Row(
                             [
-                                self.entry_search, btn_create, btn_reload
-                            ]
+                                self.entry_search, btn_reload
+                            ],
+                            aligame
                         ),
                         ft.Container(
                             content=self.contenedor_productos.contenido,
