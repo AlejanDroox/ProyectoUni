@@ -73,6 +73,7 @@ class MiniCard(ft.Container):
         self.name = name
         self.image = image
         self.id = id
+        self.scale = 0.75
         self.price = round(float(price), 2)
         self.existencia = cantidad
         self.text_p_e = ft.Text(value=f'Precio:{self.price} Disponibles {self.existencia}', text_align='center')
@@ -188,7 +189,7 @@ class Inventario(ft.Tabs):
             color='black'
         )
         self.contenedor_productos = LineaProductos()
-        tab_inventario = ft.Container(
+        self.tab_inventario = ft.Container(
             ft.Row([
                 ft.Column(
                     [
@@ -212,37 +213,6 @@ class Inventario(ft.Tabs):
             ),
         )
         self.registro_ventas = RegistroVenta(self.cargar_productos)
-        if user.rol != 'empleado':
-            self.tabs=[
-                ft.Tab(
-                    text="Inventario",
-                    content=tab_inventario,
-                    icon=ft.icons.INVENTORY
-                ),
-                ft.Tab(
-                    text = 'Registro de Venta',
-                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
-                    content=self.registro_ventas,
-                ),
-                ft.Tab(
-                    content=AgregarProducto(self.cargar_productos),
-                    icon=ft.icons.EDIT_SQUARE,
-                ),
-                
-            ]
-        else:
-            self.tabs=[
-                ft.Tab(
-                    text="Inventario",
-                    content=tab_inventario,
-                    icon=ft.icons.INVENTORY
-                ),
-                ft.Tab(
-                    text = 'Registro de Venta',
-                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
-                    content=self.registro_ventas,
-                ),
-            ]
         self.expand=1
         self.cargar_productos()
 
@@ -284,7 +254,38 @@ class Inventario(ft.Tabs):
             self.contenedor_productos.agg_card(panel)
         self.conx.close_session()
         self.page.update()
-
+    def agregar_tabs(self):
+        if user.rol != 'empleado':
+            self.tabs=[
+                ft.Tab(
+                    text="Inventario",
+                    content=self.tab_inventario,
+                    icon=ft.icons.INVENTORY
+                ),
+                ft.Tab(
+                    text = 'Registro de Venta',
+                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
+                    content=self.registro_ventas,
+                ),
+                ft.Tab(
+                    content=AgregarProducto(self.cargar_productos),
+                    icon=ft.icons.EDIT_SQUARE,
+                ),
+                
+            ]
+        else:
+            self.tabs=[
+                ft.Tab(
+                    text="Inventario",
+                    content=self.tab_inventario,
+                    icon=ft.icons.INVENTORY
+                ),
+                ft.Tab(
+                    text = 'Registro de Venta',
+                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
+                    content=self.registro_ventas,
+                ),
+            ]
     def search(self):
         try:
             key = '8'
@@ -372,7 +373,8 @@ class PanelAlerts(ft.AlertDialog):
                     ],
                     width=512,
                     height=408,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
             )
         self.alert_agg = body
     def close(self):
@@ -560,14 +562,19 @@ class RegistroVenta(ft.Container):
             on_click= lambda _: self.create_registro()
         )
         monto_total_btn_cancelar = ft.Column(
-            controls=[monto_total_text, btn_aceptar]
+            controls=[monto_total_text, btn_aceptar],
+            alignment=ft.MainAxisAlignment.START
+        )
+        cliente_fecha = ft.Row(
+            [entry_ci_cliente, self.btn_date_picker],
+            alignment=ft.MainAxisAlignment.START
         )
         body = ft.Column(
             [
-                title,
+                ft.Container(title, alignment=ft.Alignment(-0.6,0.2)),
                 ft.Row(
                     [
-                        self.entry_producto, self.entry_cant, entry_ci_cliente, self.btn_date_picker
+                        self.entry_producto, self.entry_cant, 
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),

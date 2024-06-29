@@ -258,7 +258,9 @@ class Panel_alerts(ft.AlertDialog):
                     ],
                     width=512,
                     height=408,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+
             )
         self.alert_agg = body
     
@@ -297,10 +299,14 @@ class Panel_alerts(ft.AlertDialog):
                 show_banner_click()
             finally:
                 self.close(entry_user, entry_user_r)
+        def comprobacion(e):
+            enabled = bool(entry_user.value and entry_user_r.value and entry_user.value == entry_user_r.value)
+            btn_aceptar.disabled = enabled
+            btn_aceptar.update()
         title = ft.Text("Eliminar Usuario", size=48, weight=ft.FontWeight.W_900)
-        entry_user = ft.TextField(label='Nombre de Usuario a eliminar', width=240)
-        entry_user_r = ft.TextField(label='Repetir Nombre', width=240)
-        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        entry_user = ft.TextField(label='Nombre de Usuario a eliminar', width=240, on_change=comprobacion)
+        entry_user_r = ft.TextField(label='Repetir Nombre', width=240, on_change= comprobacion)
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar(), disabled=True)
         btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
         body = ft.Column(
                     [
@@ -317,7 +323,9 @@ class Panel_alerts(ft.AlertDialog):
                     ],
                     width=512,
                     height=408,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+
             )
         self.alert_dell = body
     
@@ -370,7 +378,8 @@ class Panel_alerts(ft.AlertDialog):
                     ],
                     width=512,
                     height=408,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
             )
         self.alert_edit_rol = body
     def draw_alert_edit_status(self):
@@ -385,6 +394,7 @@ class Panel_alerts(ft.AlertDialog):
             self.close([entry_user, en])
             
         def check():
+            disble = btn_check.value and entry_user.value and r
             btn_aceptar.disabled = not btn_aceptar.disabled
             self.page.update()
         def search_user(e):
@@ -396,10 +406,11 @@ class Panel_alerts(ft.AlertDialog):
                 entry_user.update()
                 btn_check.update()
             else:
+                btn_check.label = f'Debe Introducir Primero el nombre de usuario'
                 entry_user.color = 'red'
                 entry_user.tooltip = 'No se encontro al usuario'
                 entry_user.update()
-        title = ft.Text("Editar Estatus", size=48, weight=ft.FontWeight.W_900)
+        title = ft.Text("Editar Estado", size=48, weight=ft.FontWeight.W_900)
         btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar(), disabled=True)
         btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
         entry_user = ft.TextField(
@@ -423,7 +434,7 @@ class Panel_alerts(ft.AlertDialog):
                                 [
                                     entry_user, btn_search
                                 ],
-                                alignment=ft.MainAxisAlignment.START
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                             ),
                             padding=ft.padding.only(left=45, top=23, right=27)
                         ),
@@ -438,7 +449,9 @@ class Panel_alerts(ft.AlertDialog):
                     ],
                     width=512,
                     height=408,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+
             )
         self.alert_edit_status = body
     def close_banner(self, e):

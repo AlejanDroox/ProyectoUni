@@ -8,18 +8,8 @@ from time import sleep
 class InicioSesion():
     def __init__(self, page, inventario):
         super().__init__()
-        self.load_inventario = inventario.contenido
+        self.inventario = inventario
         self.page: ft.Page = page
-        self.entry_user =  ft.TextField(
-            width=280,
-            height=40,
-            border_radius= ft.border_radius.horizontal(left=10,right=30),
-            label = 'Username',
-            #hint_text='Cedula', es otra forma de poner el texto pero el de arriba me gusto mas
-            prefix_icon=ft.icons.PEOPLE,
-            #input_filter= ft.NumbersOnlyInputFilter(),
-            text_vertical_align= -1.0
-        )
         self.entry_pass = ft.TextField(
                 width=280,
                 height=40,
@@ -29,8 +19,21 @@ class InicioSesion():
                 prefix_icon=ft.icons.PASSWORD, #el icono tambien podria ser lock
                 text_vertical_align= -1.0,
                 password= True,
-                can_reveal_password=True
+                can_reveal_password=True,
+                on_submit= lambda _: self.auth(page)
             )
+        self.one_inicio = False
+        self.entry_user =  ft.TextField(
+            width=280,
+            height=40,
+            border_radius= ft.border_radius.horizontal(left=10,right=30),
+            label = 'Username',
+            #hint_text='Cedula', es otra forma de poner el texto pero el de arriba me gusto mas
+            prefix_icon=ft.icons.PEOPLE,
+            #input_filter= ft.NumbersOnlyInputFilter(),
+            text_vertical_align= -1.0,
+            on_submit= lambda _: self.entry_pass.focus()
+        )
         self.body = ft.Container(
             ft.Row([
                 ft.Container(
@@ -121,7 +124,7 @@ class InicioSesion():
             actions=[
             ft.TextButton("OK", on_click= lambda _: self.close_banner()),
         ],
-        )
+        )  
     def close_banner(self):
         self.page.banner.open = False
         self.page.update()
@@ -141,7 +144,10 @@ class InicioSesion():
         passw = self.entry_pass.value
         if ctrl.authenticate_user(n_user,passw):
             user.setter(ctrl.encontrar_usuario(n_user))
-            self.load_inventario()
+            if not self.one_inicio:
+                self.inventario.contenido()
+                self.one_inicio = True
+            self.inventario.agregar_tabs()
             self.entry_user.value = ''
             self.entry_pass.value = ''
             self.open_banner('aprovado')
@@ -151,5 +157,8 @@ class InicioSesion():
             
         else:
             self.open_banner('error')
+    def build(self):
+        self.entry_user.focus()
+
 
 
