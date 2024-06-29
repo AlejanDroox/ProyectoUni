@@ -32,11 +32,12 @@ class ProductCard(ft.ExpansionPanel):
         self.mini_card = ft.Container(
             content=ft.Column(
                 [
-                    ft.Image(src=self.image, width=230, height=200),
+                    ft.Image(src=self.image, width=194, height=160),
                     ft.Text(self.name),
-                    ft.Text(self.descripcion),
-                    ft.IconButton(icon=ft.icons.EDIT)
-                ]
+                    ft.Container(ft.Text(self.descripcion)),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
             )
         )
         hed_content = ft.Container(
@@ -61,6 +62,8 @@ class ProductCard(ft.ExpansionPanel):
                 ft.Text(f"Precio Compra: {self.price_c}"),
                 ft.Text(f"EXistencias: {self.Existencia}"),
                 ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
+                ft.IconButton(icon=ft.icons.EDIT)
+
             ],
         )
 
@@ -99,15 +102,15 @@ class LineaProductos():
         self.contenido = ft.Column(controls=self.lineas,
                                 scroll=ft.ScrollMode.ALWAYS,
                                 spacing=25,
-                                height=500,
-                                width=1150,)
+                                height=455,
+                                width=1200)
         img = ft.Container(
             content = ft.Image(
             src=LOGO,
             fit=ft.ImageFit.COVER,
             ),
             opacity= 0.35,
-            padding=ft.padding.only(left=325, top = 100)
+            padding=ft.padding.only(left=430, top = 5)
         )
         self.contenido = ft.Stack([img,self.contenido])
     def agg_card(self, producto):
@@ -115,7 +118,7 @@ class LineaProductos():
         linea = ft.Row(alignment=ft.MainAxisAlignment.SPACE_EVENLY)
         try:
             cantidad = len(self.lineas[-1].controls)
-            if cantidad < 3:
+            if cantidad < 4:
                 self.lineas[-1].controls.append(producto)
             else:
                 linea.controls.append(producto)
@@ -166,7 +169,6 @@ class Inventario(ft.Tabs):
         self.conx = DbConnector(CONFIG)
         self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
         self.page.dialog = self.alert_dialog
-        self.contenido()
     def contenido(self):
         def open_alert(alert):
             self.alert_dialog.change_alert(alert)
@@ -176,12 +178,6 @@ class Inventario(ft.Tabs):
             label='Nombre el Producto',
             icon=ft.icons.SEARCH,
             on_change= lambda _: self.contenedor_productos.search(self.entry_search.value),
-        )
-        btn_create = ft.ElevatedButton(
-            text='agregar producto',
-            icon=ft.icons.CREATE,
-            on_click= lambda _: open_alert('agg'),
-            color='black'
         )
         btn_reload = ft.ElevatedButton(
             text='Refrescar Inventario',
@@ -201,9 +197,10 @@ class Inventario(ft.Tabs):
                         ),
                         ft.Container(
                             content=self.contenedor_productos.contenido,
-                            border=ft.border.all(color='#BABABA', width=2.5),
+                            border=ft.border.all(color='#BABABA', width=1.5),
                             bgcolor='#D9D9D9',
-                            border_radius=18
+                            border_radius=18,
+                            height=455
                         ),
                     ],
                 alignment=ft.MainAxisAlignment.SPACE_EVENLY,
@@ -213,25 +210,37 @@ class Inventario(ft.Tabs):
             ),
         )
         self.registro_ventas = RegistroVenta(self.cargar_productos)
-        self.tabs=[
-            ft.Tab(
-                text="EDIT",
-                content=AgregarProducto(self.cargar_productos),
-                icon=ft.icons.EDIT_SQUARE,
-            ),
-            ft.Tab(
-                text="inventario",
-                content=tab_inventario,
-                icon=ft.icons.INVENTORY
-            ),
-            ft.Tab(
-                text = 'Registro de Venta',
-                tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
-                content=self.registro_ventas,
-
-            ),
-            
-        ]
+        if user.rol != 'empleado':
+            self.tabs=[
+                ft.Tab(
+                    text="Inventario",
+                    content=tab_inventario,
+                    icon=ft.icons.INVENTORY
+                ),
+                ft.Tab(
+                    text = 'Registro de Venta',
+                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
+                    content=self.registro_ventas,
+                ),
+                ft.Tab(
+                    content=AgregarProducto(self.cargar_productos),
+                    icon=ft.icons.EDIT_SQUARE,
+                ),
+                
+            ]
+        else:
+            self.tabs=[
+                ft.Tab(
+                    text="Inventario",
+                    content=tab_inventario,
+                    icon=ft.icons.INVENTORY
+                ),
+                ft.Tab(
+                    text = 'Registro de Venta',
+                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
+                    content=self.registro_ventas,
+                ),
+            ]
         self.expand=1
         self.cargar_productos()
 
@@ -260,6 +269,7 @@ class Inventario(ft.Tabs):
                 divider_color=ft.colors.AMBER,
                 width=300,
                 controls= [product_card],
+                scale=0.7
                 
             )
             minicard = MiniCard(image=producto.Image,
@@ -766,8 +776,9 @@ class AgregarProducto(ft.Container):
             label='Proveedor',
             options=[
                 ft.dropdown.Option('MADECO'),
-                ft.dropdown.Option('ARTESANAL LUIS'),
-                ft.dropdown.Option('ASTESANAL CARLOS'),
+                ft.dropdown.Option('STANLEY'),
+                ft.dropdown.Option('TOTAL'),
+                ft.dropdown.Option('TRUPER'),
             ]
         )
         self.valores = [

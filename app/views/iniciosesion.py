@@ -6,8 +6,9 @@ from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
 from time import sleep
 class InicioSesion():
-    def __init__(self, page):
+    def __init__(self, page, inventario):
         super().__init__()
+        self.load_inventario = inventario.contenido
         self.page: ft.Page = page
         self.entry_user =  ft.TextField(
             width=280,
@@ -139,10 +140,11 @@ class InicioSesion():
         n_user = self.entry_user.value
         passw = self.entry_pass.value
         if ctrl.authenticate_user(n_user,passw):
+            user.setter(ctrl.encontrar_usuario(n_user))
+            self.load_inventario()
             self.entry_user.value = ''
             self.entry_pass.value = ''
             self.open_banner('aprovado')
-            user.setter(ctrl.encontrar_usuario(n_user))
             sleep(1.5)
             self.close_banner()
             page.go(DIRECCIONES['inventario'])

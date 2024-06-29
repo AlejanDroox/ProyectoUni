@@ -10,9 +10,9 @@ from views.colors import GRIS_FONDOS
 def main(page: ft.Page):
     """funcion principal"""
 
-    body_inicio = InicioSesion(page)
     menu = menu_lateral(page=page)
     inventario = Inventario(page=page)
+    body_inicio = InicioSesion(page,inventario)
     STYLE_APP_BAR = {
         'bgcolor':'#FFF510',
         'actions':[ft.Image(src=r'app\assets\logo.png')],
@@ -129,7 +129,6 @@ def main(page: ft.Page):
     page.window_height = 720
     page.window_resizable = False
     page.window_maximizable = False
-    page.bgcolor = '#737373'
     page.vertical_alignment = 'CENTER'
     page.horizontal_alignment = 'CENTER'
     page.on_route_change = cambio
