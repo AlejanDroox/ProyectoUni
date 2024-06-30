@@ -5,15 +5,15 @@ import datetime
 import os
 import shutil
 import flet as ft
+from jaro import jaro_winkler_metric
 from utils.globals import DIRECCIONES, CONFIG, user, LOGO
+from utils import errores
+from views.colors import AMARILLO, GRIS_FONDOS
 from views.panel_alerts import PanelAlerts
 from db.db_connector import DbConnector,DbConnectorRV
 from db.crud_productos import ControlProductos, Producto
+from sqlalchemy.exc import SQLAlchemyError
 from db.crud_registro import CRUDVentas
-from views.colors import AMARILLO, GRIS_FONDOS
-from jaro import jaro_winkler_metric
-from utils import errores
-
 
 FILTER_PRICE = ft.InputFilter(allow=True, regex_string=r"[0-9,]{1,3}", replacement_string="")
 class ProductCard(ft.ExpansionPanel):
@@ -651,7 +651,10 @@ class AgregarProducto(ft.Container):
                 self.panel_alerts.show_banner(True, e.msg)
             except errores.NullValues as e:
                 self.panel_alerts.show_banner(True, text=f'No se ha añadido todos los valores necesario registro no procesado\n(faltan los valores de {", ".join(e.sin_values)})')
-
+            except SQLAlchemyError as e:
+                self.panel_alerts.show_banner(True, text=f'Error en la base de datos, contactar con servicio tecnico.\n{e}')
+            except Exception as e:
+                self.panel_alerts.show_banner(True, text=f'Error desconocido, contactar con servicio tecnico.\n{e}')
         self.image = ft.Image(
                 width=230, height=200, 
                 src=r'app\assets\productos\agregar_imagen.png',
