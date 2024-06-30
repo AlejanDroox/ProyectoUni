@@ -5,17 +5,16 @@ import datetime
 import os
 import shutil
 import flet as ft
-from utils.globals import DIRECCIONES, CONFIG, user
+from utils.globals import DIRECCIONES, CONFIG, user, LOGO
+from views.panel_alerts import PanelAlerts
 from db.db_connector import DbConnector,DbConnectorRV
 from db.crud_productos import ControlProductos, Producto
 from db.crud_registro import CRUDVentas
+from views.colors import AMARILLO, GRIS_FONDOS
 from jaro import jaro_winkler_metric
-from utils.errores import NullValues
+from utils import errores
 
-name_product = {}
-"""Contendra todos los productos en formato
-Nombre: ProductCard"""
-mini_cards = []
+
 FILTER_PRICE = ft.InputFilter(allow=True, regex_string=r"[0-9,]{1,3}", replacement_string="")
 class ProductCard(ft.ExpansionPanel):
     def __init__(self, image, name, description, price_v, price_c, id, Existencia):
@@ -30,11 +29,12 @@ class ProductCard(ft.ExpansionPanel):
         self.mini_card = ft.Container(
             content=ft.Column(
                 [
-                    ft.Image(src=self.image, width=230, height=200),
+                    ft.Image(src=self.image, width=194, height=160),
                     ft.Text(self.name),
-                    ft.Text(self.descripcion),
-                    ft.IconButton(icon=ft.icons.EDIT)
-                ]
+                    ft.Container(ft.Text(self.descripcion)),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER
             )
         )
         hed_content = ft.Container(
@@ -59,6 +59,8 @@ class ProductCard(ft.ExpansionPanel):
                 ft.Text(f"Precio Compra: {self.price_c}"),
                 ft.Text(f"EXistencias: {self.Existencia}"),
                 ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
+                ft.IconButton(icon=ft.icons.EDIT)
+
             ],
         )
 
@@ -68,13 +70,15 @@ class MiniCard(ft.Container):
         self.name = name
         self.image = image
         self.id = id
+        self.scale = 0.75
         self.price = round(float(price), 2)
         self.existencia = cantidad
+        self.text_p_e = ft.Text(value=f'Precio:{self.price} Disponibles {self.existencia}', text_align='center')
         self.content=ft.Column(
                 [
                     ft.Image(src=image, width=230, height=200),
                     ft.Text(value=f'{name}', size=12, text_align='justify'),
-                    ft.Text(value=f'Precio:{self.price} Disponibles {self.existencia}', text_align='center'),
+                    self.text_p_e
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -83,6 +87,11 @@ class MiniCard(ft.Container):
         self.bgcolor = '#D3D3D3'
         self.border_radius = 18
         self.height = 275
+    def actualizar_cant(self, cant):
+        self.existencia -= cant
+        self.text_p_e.value=f'Precio:{self.price} Disponibles {self.existencia}'
+        self.update()
+        
 class LineaProductos():
     """Contiene las card generadas en la clase producto
     de manera ordenada y en scroll"""
@@ -91,14 +100,23 @@ class LineaProductos():
         self.contenido = ft.Column(controls=self.lineas,
                                 scroll=ft.ScrollMode.ALWAYS,
                                 spacing=25,
-                                height=700,
-                                width=1150,)
+                                height=455,
+                                width=1200)
+        img = ft.Container(
+            content = ft.Image(
+            src=LOGO,
+            fit=ft.ImageFit.COVER,
+            ),
+            opacity= 0.35,
+            padding=ft.padding.only(left=430, top = 5)
+        )
+        self.contenido = ft.Stack([img,self.contenido])
     def agg_card(self, producto):
         """agregar una nueva card de un producto"""
         linea = ft.Row(alignment=ft.MainAxisAlignment.SPACE_EVENLY)
         try:
             cantidad = len(self.lineas[-1].controls)
-            if cantidad < 3:
+            if cantidad < 4:
                 self.lineas[-1].controls.append(producto)
             else:
                 linea.controls.append(producto)
@@ -144,12 +162,12 @@ class Inventario(ft.Tabs):
             ft.MaterialState.FOCUSED: ft.colors.RED,
             ft.MaterialState.DEFAULT: ft.colors.BLACK,
         }
+        self.panel_alerts = PanelAlerts(page=page, crtl_user=None, load_table=None)
         self.divider_color = GRIS_FONDOS
         self.indicator_color = '#909090'
         self.conx = DbConnector(CONFIG)
-        self.alert_dialog = PanelAlerts(page= page, conx=self.conx)
+        self.alert_dialog = PanelAlerts(page=page, crtl_user=None, load_table=None)
         self.page.dialog = self.alert_dialog
-        self.contenido()
     def contenido(self):
         def open_alert(alert):
             self.alert_dialog.change_alert(alert)
@@ -159,32 +177,31 @@ class Inventario(ft.Tabs):
             label='Nombre el Producto',
             icon=ft.icons.SEARCH,
             on_change= lambda _: self.contenedor_productos.search(self.entry_search.value),
+            color='white',
+            label_style={'color': 'white'}
         )
-        btn_create = ft.TextButton(
-            text='agregar producto',
-            icon=ft.icons.CREATE,
-            on_click= lambda _: open_alert('agg')
-        )
-        btn_reload = ft.TextButton(
+        btn_reload = ft.ElevatedButton(
             text='Refrescar Inventario',
             icon=ft.icons.CHANGE_CIRCLE,
-            on_click= lambda _: self.cargar_productos()
+            on_click= lambda _: self.cargar_productos(),
+            color='black'
         )
         self.contenedor_productos = LineaProductos()
-        tab_inventario = ft.Container(
+        self.tab_inventario = ft.Container(
             ft.Row([
                 ft.Column(
                     [
                         ft.Row(
                             [
-                                self.entry_search, btn_create, btn_reload
-                            ]
+                                self.entry_search, btn_reload
+                            ],
                         ),
                         ft.Container(
                             content=self.contenedor_productos.contenido,
-                            border=ft.border.all(color='#BABABA', width=2.5),
+                            border=ft.border.all(color='#BABABA', width=1.5),
                             bgcolor='#D9D9D9',
-                            border_radius=18
+                            border_radius=18,
+                            height=455
                         ),
                     ],
                 alignment=ft.MainAxisAlignment.SPACE_EVENLY,
@@ -193,31 +210,7 @@ class Inventario(ft.Tabs):
             alignment=ft.MainAxisAlignment.SPACE_EVENLY,
             ),
         )
-        self.registro_ventas = RegistroVenta(self.cargar_productos)
-        self.tabs=[
-            ft.Tab(
-                text="EDIT",
-                content=AgregarProducto(self.cargar_productos),
-                icon=ft.icons.EDIT_SQUARE,
-            ),
-            ft.Tab(
-                text="inventario",
-                content=tab_inventario,
-                icon=ft.icons.INVENTORY
-            ),
-            ft.Tab(
-                text = 'Registro de Venta',
-                tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
-                content=self.registro_ventas,
-
-            ),
-            ft.Tab(
-                text="Tab 3",
-                icon=ft.icons.SETTINGS,
-                content=ft.Text("This is Tab 3"),
-            ),
-            
-        ]
+        self.registro_ventas = RegistroVenta(self.cargar_productos, self.panel_alerts)
         self.expand=1
         self.cargar_productos()
 
@@ -246,6 +239,7 @@ class Inventario(ft.Tabs):
                 divider_color=ft.colors.AMBER,
                 width=300,
                 controls= [product_card],
+                scale=0.7
                 
             )
             minicard = MiniCard(image=producto.Image,
@@ -258,7 +252,38 @@ class Inventario(ft.Tabs):
             self.contenedor_productos.agg_card(panel)
         self.conx.close_session()
         self.page.update()
-
+    def agregar_tabs(self):
+        if user.rol != 'empleado':
+            self.tabs=[
+                ft.Tab(
+                    text="Inventario",
+                    content=self.tab_inventario,
+                    icon=ft.icons.INVENTORY
+                ),
+                ft.Tab(
+                    text = 'Registro de Venta',
+                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
+                    content=self.registro_ventas,
+                ),
+                ft.Tab(
+                    content=AgregarProducto(self.cargar_productos, self.panel_alerts),
+                    icon=ft.icons.EDIT_SQUARE,
+                ),
+                
+            ]
+        else:
+            self.tabs=[
+                ft.Tab(
+                    text="Inventario",
+                    content=self.tab_inventario,
+                    icon=ft.icons.INVENTORY
+                ),
+                ft.Tab(
+                    text = 'Registro de Venta',
+                    tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
+                    content=self.registro_ventas,
+                ),
+            ]
     def search(self):
         try:
             key = '8'
@@ -269,101 +294,18 @@ class Inventario(ft.Tabs):
             pass
     
 
-class PanelAlerts(ft.AlertDialog):
-    """Un controlador de los distintos alertdialog que necesarios, crea todos los 
-    alert dialog los guarda en una variable y segun se necesite el contenido del alert
-    dialog sera uno u otro. tambien posee el backend de los mismos"""
-    STYLE_ALERT = {
-        'bgcolor': 'white',  
-    }
-    def __init__(self, page:ft.Page, conx):
-        super().__init__()
-        self.page = page
-        self.draw_alerts()
-        self.alerts = {
-            'agg': self.alert_agg,
-        }
-    
-    def draw_alerts(self):
-        self.draw_alert_agg()
-        
-    
-    def change_alert(self, alert_name):
-        self.content = self.alerts[alert_name]
-    
-    def draw_alert_agg(self):
-        """Crea el alert Dialog de agregar usuario"""
-        def mostrar_pass(btn:ft.IconButton, entry: ft.TextField):
-            btn.selected = not btn.selected
-            entry.password = not entry.password
-            btn.page.update()
-        def aceptar():
-            new_product= entry_product.value
-            passw = entry_pass.value
-            rol = multi_select.value
-        title = ft.Text("Editar ", size=48, weight=ft.FontWeight.W_900)
-        entry_product = ft.TextField(label='Nombre', width=240)
-        entry_marca = ft.TextField(label='Marca', width=240)
-        entry_descripcion = ft.TextField(label='descripcion', width=240)
-        btn_pass = ft.IconButton(icon=ft.icons.REMOVE_RED_EYE, selected_icon=ft.icons.REMOVE_RED_EYE_OUTLINED, on_click= lambda _: mostrar_pass(btn_pass, entry_pass))
-        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
-        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
-        multi_select = ft.Dropdown(
-            label= 'Proevedor',
-            width=160,
-            options= [
-                ft.dropdown.Option("juan"),
-                ft.dropdown.Option("pedro"),
-                ft.dropdown.Option("qlq")
-            ]
-        )
-        self.widgt_agg = [entry_product,entry_marca, entry_descripcion]
-        body = ft.Column(
-                    [
-                        title, 
-                        ft.Container(
-                            ft.Row(
-                                [
-                                    entry_product, multi_select
-                                ],
-                                alignment=ft.MainAxisAlignment.START
-                            ),
-                            padding=ft.padding.only(left=45, top=23, right=27)
-                        ),
-                        ft.Row(
-                            [
-                                entry_marca, entry_descripcion
-                            ],
-                            alignment=ft.MainAxisAlignment.START
-                        ),
-                        ft.Row(
-                            [
-                                btn_cancelar, btn_aceptar
-                            ],
-                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
-                        ),
-                        
-                    ],
-                    width=512,
-                    height=408,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            )
-        self.alert_agg = body
-    def close(self):
-        for i in self.widgt_agg:
-            i.value = ''
-        self.open = False
-        self.page.update()
 #region RegistroVentas
 class RegistroVenta(ft.Container):
-    def __init__(self, refrehs):
+    def __init__(self, refrehs, panel_alerts):
         super().__init__()
+        self.panel_alerts = panel_alerts
         #self.border=ft.border.all(color='#BABABA', width=2.5)
         self.products = []
         self.products_mini = []
         self.monto_total = 0
-        self.refrehs = lambda _: refresh
+        self.refrehs = lambda _: refrehs
         self.conx = DbConnectorRV(CONFIG)
+        self.bgcolor = '#D7D7D7'
         #self.bgcolor = GRIS_FONDOS
     def draw_contenido(self):
         self.productos_venta = []
@@ -400,18 +342,13 @@ class RegistroVenta(ft.Container):
                     i:MiniCard
                     if i.name == self.entry_producto.value:
                         p = round(float(i.price),2)
-                        i.existencia -= c
+                        i.actualizar_cant(c)
                         self.monto_total += i.price * int(self.entry_cant.value)
                         monto_total_text.value = f'Monto Total: {self.monto_total} bs'
                         self.actualizar_celda(0,3, self.monto_total)
                         break
                         
                 producto = (n,c,p)
-                for p in self.productos_venta():
-                    if p[0] == n: 
-                        p[1] += c
-                        repeat = True
-                        break
                 if not repeat: self.productos_venta.append(producto)
                 self.entry_producto.value = ''
                 self.entry_producto.disabled = False
@@ -465,7 +402,6 @@ class RegistroVenta(ft.Container):
             ],
             on_change= lambda _: self.actualizar_celda(0,4, metodo_pago.value)
         )
-        counter = Counter()
         headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
 
         # Crear las filas de la tabla (una fila vacía para empezar)
@@ -492,12 +428,14 @@ class RegistroVenta(ft.Container):
         self.btn_add = ft.IconButton(
             icon=ft.icons.ADD,
             disabled=True,
+            icon_size=15,
             tooltip='Agregar Producto al Registro',
-            on_click= lambda _: add_product()
+            on_click= lambda _: add_product(),
         )
         self.btn_cancelar = ft.IconButton(
             icon=ft.icons.CANCEL_OUTLINED,
             disabled=True,
+            icon_size=15,
             tooltip='Cancelar seleccion de producto',
             on_click=lambda _: self.cancel_product()
         )
@@ -506,7 +444,7 @@ class RegistroVenta(ft.Container):
                                 scroll=ft.ScrollMode.ALWAYS,
                                 spacing=25,
             ),
-            height=350,
+            height=200,
             width=250,
             #bgcolor='#D9D9D9'
             )
@@ -517,8 +455,7 @@ class RegistroVenta(ft.Container):
                     ]
                 ),
             width=125,
-            padding=ft.padding.only(bottom=275),
-            border=ft.border.all()
+            padding=ft.padding.only(bottom=175),
         )
         monto_total_text = ft.Text(
             value=f'Monto total: 0 bs',
@@ -539,20 +476,26 @@ class RegistroVenta(ft.Container):
             on_click= lambda _: self.create_registro()
         )
         monto_total_btn_cancelar = ft.Column(
-            controls=[monto_total_text, btn_aceptar]
+            controls=[monto_total_text, btn_aceptar],
+            alignment=ft.MainAxisAlignment.START
         )
+        cliente_fecha = ft.Row(
+            [entry_ci_cliente, self.btn_date_picker],
+            alignment=ft.MainAxisAlignment.START
+        )
+        cont_cantidad = ft.Container(self.entry_cant, padding=ft.padding.only(right=160))
         body = ft.Column(
             [
-                title,
+                ft.Container(title, alignment=ft.Alignment(-0.6,0.2)),
                 ft.Row(
                     [
-                        self.entry_producto, self.entry_cant, entry_ci_cliente, self.btn_date_picker
+                        self.entry_producto, cont_cantidad , cliente_fecha
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
                 ft.Row(
                     [
-                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar, counter
+                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar, 
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
@@ -633,30 +576,29 @@ class RegistroVenta(ft.Container):
             }
             
             for i in registro.values():
-                if not i: raise NullValues()
+                if not i: raise errores.NullValues()
             self.ctrl_registro.crear_ventas_multiples(
-                self.productos_venta,
-                user.username,
-                metodo_pago=registro['metodo'])
-            print(registro)
-        except NullValues:
+                ventas=self.productos_venta,
+                username=user.username,
+                nombre_cliente='pedro',
+                numero_identificacion=registro['cliente'],
+                metodo_pago=registro['metodo'],
+                fecha_venta=registro['fecha'])
+        except errores.NullValues:
             pass
         self.conx.close_session()
-        self.refrehs()
+        #self.refrehs()
     def build(self):
         self.draw_contenido()
         
-#region COLORS
-AMARILLO ='#FFF510'
-GRIS_FONDOS = '#737373' 
 #region agregar producto
 class AgregarProducto(ft.Container):
-    def __init__(self, cargar_productos):
+    def __init__(self, cargar_productos, panel_alerts:PanelAlerts):
         super().__init__()
+        self.panel_alerts = panel_alerts
         self.padding = 30
         self.bgcolor = GRIS_FONDOS
         self.cargar_productos = cargar_productos
-        self.border = ft.border.all()
         self.file_picker = ft.FilePicker(on_result=self.on_file_picker_result)
         self.conx = DbConnector(CONFIG)
         self.ctrl_productos = ControlProductos(self.conx)
@@ -691,18 +633,24 @@ class AgregarProducto(ft.Container):
             for i in self.valores:
                 if not i.value: 
                     null_values.append(i.label)
-            if null_values:
-                raise NullValues(null_values)
-            if self.ctrl_productos.create_product(
-                nom_Producto=self.entry_name.value,
-                existencia=self.entry_existencias.value,
-                descripcion=self.entry_descripcion.value,
-                valor_v=self.entry_precio_v.value,
-                valor_c=self.entry_precio_v.value,
-                image=self.image.src,
-                id_usuarios=1
-                ):
+            try:
+                if null_values:
+                    raise errores.NullValues(null_values)
+                msg = self.ctrl_productos.create_product(
+                    nom_Producto=self.entry_name.value,
+                    existencia=self.entry_existencias.value,
+                    descripcion=self.entry_descripcion.value,
+                    valor_v=self.entry_precio_v.value,
+                    valor_c=self.entry_precio_v.value,
+                    image=self.image.src,
+                    id_usuarios=1
+                )
                 self.cargar_productos()
+                self.panel_alerts.show_banner(False, msg)
+            except errores.ValuesExist as e:
+                self.panel_alerts.show_banner(True, e.msg)
+            except errores.NullValues as e:
+                self.panel_alerts.show_banner(True, text=f'No se ha añadido todos los valores necesario registro no procesado\n(faltan los valores de {", ".join(e.sin_values)})')
 
         self.image = ft.Image(
                 width=230, height=200, 
@@ -755,24 +703,27 @@ class AgregarProducto(ft.Container):
         self.Proevedor = ft.Dropdown(
             label='Proveedor',
             options=[
-                ft.dropdown.Option('hola'),
-                ft.dropdown.Option('hola2'),
-                ft.dropdown.Option('hola3'),
+                ft.dropdown.Option('MADECO'),
+                ft.dropdown.Option('STANLEY'),
+                ft.dropdown.Option('TOTAL'),
+                ft.dropdown.Option('TRUPER'),
             ]
         )
         self.valores = [
+            self.entry_name,
             self.entry_precio_c,
             self.entry_precio_v,
             self.entry_existencias,
             self.entry_descripcion,
             self.Proevedor]
-        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
-        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: aceptar())
+        btn_aceptar = ft.ElevatedButton(text='Aceptar', on_click=lambda _: aceptar(), color='black')
+        btn_cancelar = ft.ElevatedButton(text='Cancelar', on_click= lambda _: aceptar(),color='black')
         container_proee = ft.Container(
             content=ft.Column(
                 [
                     self.Proevedor,
-                    ft.ElevatedButton("Seleccionar Imagen", on_click=self.pick_file)
+                    ft.ElevatedButton("Seleccionar Imagen", on_click=self.pick_file,
+                        color='black')
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -783,7 +734,7 @@ class AgregarProducto(ft.Container):
             [
                 self.entry_precio_c, self.entry_precio_v, self.entry_existencias
             ],
-            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         container_number_proee = ft.Container(
             content=ft.Row(
@@ -796,7 +747,7 @@ class AgregarProducto(ft.Container):
         zona_edit = ft.Container(
             content=ft.Column(
                 [
-                    ft.Text(value='Editar Producto'),
+                    ft.Container(ft.Text(value='Datos del Producto', size=28, weight=ft.FontWeight.W_900), alignment=ft.alignment.center),
                     self.entry_name,
                     self.entry_descripcion,
                     container_number_proee,
@@ -961,30 +912,21 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
         controls=[
             ft.Container(height=12),
             ft.NavigationDrawerDestination(
-                label="PROCESOS",
+                label="VENTAS",
                 icon=ft.icons.ENGINEERING_OUTLINED,
                 selected_icon_content=ft.Icon(ft.icons.ENGINEERING),
             ),
             ft.Divider(thickness=2),
             ft.NavigationDrawerDestination(
-                icon_content=ft.Icon(ft.icons.INSERT_DRIVE_FILE_OUTLINED),
-                label="ARCHIVOS",
-                selected_icon=ft.icons.INSERT_DRIVE_FILE,
-            ),
-            ft.NavigationDrawerDestination(
                 icon_content=ft.Icon(ft.icons.REPORT_OUTLINED),
-                label="REPORTES",
+                label="REGISTRO",
                 selected_icon=ft.icons.REPORT,
+                
             ),
             ft.NavigationDrawerDestination(
                 icon_content=ft.Icon(ft.icons.HELP_OUTLINE_SHARP),
                 label="AYUDA",
                 selected_icon=ft.icons.HELP,
-            ),
-            ft.NavigationDrawerDestination(
-                icon_content=ft.Icon(ft.icons.BACKUP_OUTLINED),
-                label="BACKUP",
-                selected_icon=ft.icons.BACKUP          
             ),
             ft.Divider(thickness=2),
             ft.NavigationDrawerDestination(
@@ -994,25 +936,51 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
             ),
             ft.Divider(thickness=2),
             ft.Container(
-                padding=ft.padding.only(top=450),
+                padding=ft.padding.only(top=361),
                 content= btn_close,
                 alignment=ft.alignment.bottom_center
             ),
+            
         ],
+        bgcolor='#C1C1C1',
         on_change=hola
     )
     return drawer
 iconosBarra = {
     '0': '/app/procesos',
-    '1': '/app/archivos',
-    '2': '/app/reportes',
-    '3': '/app/ayuda',
+    '1': DIRECCIONES['registro'],
+    '2': DIRECCIONES['registro'],
+    '3': '/app/panel_control',
     '4': '/app/ayuda',
     '5': '/app/panel_control',
 }
 def hola(e:ft.ContainerTapEvent):
     """funcion de prueba solo se llama en cualquier cambio del menu lateral"""
-    e.page.go(iconosBarra[e.data])
+    if e.data == '2':
+        #añadir logica de abrir pdf
+        pass
+    if user.rol != 'empleado':
+        e.page.go(iconosBarra[e.data])
+    else: 
+        alert = ft.AlertDialog(
+            content=ft.Container(
+                alignment=ft.alignment.center,
+                width=300,
+                height=200,
+                padding=ft.padding.all(16),
+                border_radius=ft.border_radius.all(12),
+                bgcolor=ft.colors.AMBER_100,
+                content=ft.Text(
+                    "No posees los permisos para acceder a esta función.\nRequiere un rol de gerente o superior.",
+                    size=16,
+                    weight=ft.FontWeight.BOLD,
+                    text_align=ft.TextAlign.CENTER,
+                    color=ft.colors.AMBER_900,
+                ),
+        )
+        )
+        alert.open = True
+        e.page.update()
 # region pruebas y vainas x
 # Lista de nombres de herramientas o productos de ferretería (20 elementos)
 ferreteria_nombres = [
