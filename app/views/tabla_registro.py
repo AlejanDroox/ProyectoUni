@@ -1,10 +1,11 @@
 import flet as ft
+import webbrowser
+import datetime
 from db.db_connector import DbConnectorRV
 from db.crud_registro import CRUDVentas
-headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
 from utils.globals import CONFIG, user
-import datetime
-
+import os
+headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
 class TablaDatos(ft.DataTable):
     def __init__(self):
         super().__init__()
@@ -104,19 +105,19 @@ class TablaRegistro(ft.Container):
             **style_number,
             visible=False
         )
-        top = ft.Row(
-            [
-                ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos(), icon_color='white', )
-            ], alignment=ft.MainAxisAlignment.CENTER, spacing=20
-        ),
+
         if user.rol == 'administrador':
             top = ft.Row(
                 [
                     ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos(), icon_color='white', ),
-                        ft.IconButton(icon=ft.icons.FILE_DOWNLOAD_OUTLINED, on_click=lambda _: self.create_pdf(), icon_color='white',
-                        tooltip='Descargar Registro'),
+                    ft.IconButton(icon=ft.icons.FILE_DOWNLOAD_OUTLINED, on_click=lambda _: self.create_pdf(), icon_color='white', tooltip='Descargar Registro'),
                 ], alignment=ft.MainAxisAlignment.CENTER, spacing=20
-            ),
+            )
+        else: top = ft.Row(
+            [
+                ft.IconButton(icon=ft.icons.CHANGE_CIRCLE_OUTLINED, on_click=lambda _: self.load_datos(), icon_color='white', )
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=20
+        )
         self.content = ft.Column(
             [
                 top,
@@ -141,8 +142,11 @@ class TablaRegistro(ft.Container):
         self.conx.reopen_session()
         self.ctrl_registro = CRUDVentas(self.conx.get_session())
         now = datetime.datetime.now()
-        filename = f'{now.strftime('D%-M-%Y H%:M%')}'
-        print(filename)
+        current_dir = os.path.dirname(__file__)
+        new_dir = os.path.join(current_dir, '..', 'reportes')
+        filename = f'{new_dir}\{now.strftime('%d-%m-%Y %H:%M')}.pdf'
+        self.ctrl_registro.generar_pdf_ventas(self.datos, filename=filename)
+        webbrowser.open_new(filename)
         self.conx.close_session()
     def build(self):
         self.contenido()

@@ -10,7 +10,6 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 
 
-
 # Crea el motor de SQLAlchemy
 engine = create_engine(CONFIG)
 
@@ -319,6 +318,7 @@ class CRUDVentas:
         
         # Construir el documento PDF
         doc.build(elements)
+        
 
         return filename
 
