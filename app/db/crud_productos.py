@@ -24,10 +24,12 @@ class ControlProductos():
     def __init__(self, db_connector):
         self.db_connector = db_connector
 
-    def encontrar_producto(self, nom_Producto):
-        """busca producto por nom_Producto"""
-        return self.db_connector.session.query(Producto).filter_by(nom_producto=nom_Producto).first()
-        
+    def encontrar_producto(self, nombre, descripcion=None):
+        """Busca producto por nombre y descripción"""
+        query = self.db_connector.session.query(Producto).filter_by(nom_producto=nombre)
+        if descripcion:
+            query = query.filter_by(Desc_Producto=descripcion)
+        return query.first()
 
 
         
@@ -65,7 +67,7 @@ class ControlProductos():
             self.db_connector.session.commit()
             msg = f"El producto {nom_Producto} fue creado exitosamente."
             return msg
-        raise ValuesExist(msg=f'El nombre del producto {nom_Producto} ya se encuentra, intente otro porfavor.')
+        raise ValuesExist(msg=f'Ya se encuentra almacenado un producto con el {nom_Producto} y la descripcion ingresada, intente con otros datos')
 
     def update_products(self, nom_Producto, **kwargs):
         #print(Producto)
