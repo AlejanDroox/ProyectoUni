@@ -38,70 +38,76 @@ def encontrar_usuario(self, username):
 
 #crear_admin
 def crear_admin(usuario_creador):
-    if usuario_creador=="administrador":
+    if usuario_creador.Rol=="administrador":
         print("ud es  administrador tiene permisos de todo")
         verificar_permiso('administrador','crear')
-    elif usuario_creador == None :
+        return usuario_creador.Rol
+    elif usuario_creador.Rol == None :
         pass
-    else: print("pobre pendejo sin jerarquia")
-    return usuario_creador
+    else: pass
+
         
     
 # leer_admin
 def leer_admin(usuario_creador):
-    if usuario_creador=="administrador":
+    if usuario_creador.Rol=="administrador":
         print("ud es  administrador tiene permisos de todo")
         verificar_permiso('administrador','leer')
-    elif usuario_creador == None :
+        return usuario_creador.Rol        
+    elif usuario_creador.Rol == None :
         pass
-    else: print("pobre pendejo sin jerarquia")
-    return usuario_creador
+    else:pass
+
 # actualizar_admin
 def actualizar_admin(usuario_creador):
-
-    if usuario_creador=="administrador":
+   
+    if usuario_creador.Rol=="administrador":
         print("ud es  administrador tiene permisos de todo")
         verificar_permiso('administrador','actualizar')
-        
-    elif usuario_creador == None :
+        return usuario_creador.Rol  
+    
+    elif usuario_creador.Rol == None :
        pass
-    else: print("pobre pendejo sin jerarquia")
-    return usuario_creador
+    else:        
+        pass
+
 
 def eliminar_admin(usuario_creador):
-    if usuario_creador=="administrador"  :
+    if usuario_creador.Rol=="administrador"  :
         print("ud es  administrador tiene permisos de todo")
         verificar_permiso('administrador','eliminar')
-    elif usuario_creador == None :
+        return usuario_creador.Rol
+    elif usuario_creador.Rol == None :
         pass
     else: 
-        print("pobre pendejo sin jerarquia")
+        pass
 
         
-    return usuario_creador
+
 
 # fin admin
 
 def leer_gerente(usuario_creador):
-    if usuario_creador=="gerente":
+    if usuario_creador.Rol=="gerente":
         print("ud es  gerente solo puede leer y actualizar a los que estan su mismo nivel o abajo")
         verificar_permiso('administrador','leer')
-    elif usuario_creador == None :
+        return usuario_creador.Rol        
+    elif usuario_creador.Rol == None :
         pass        
-    elif usuario_creador == False :
-        print("casi daniao")
     else: 
-        print("pobre pendejo sin jerarquia")
+        pass
     
 # actualizar_gerente
 def actualizar_gerente(usuario_creador):
-    if usuario_creador=="gerente":
+    if usuario_creador.Rol=="gerente":
         print("ud es  gerente solo puede leer y actualizar a los que estan su mismo nivel o abajo")
         verificar_permiso('administrador','actualizar')
-    elif usuario_creador == None :
+        return usuario_creador.Rol
+    elif usuario_creador.Rol == None :
        pass
     else: 
-        print("pobre pendejo sin jerarquia")
+
+        pass
     
 
 def leer_empleado(usuario_creador):
@@ -110,3 +116,4 @@ def leer_empleado(usuario_creador):
 
 # 
 # # usuario_creador = control_usuarios.encontrar_usuario(username)
+
