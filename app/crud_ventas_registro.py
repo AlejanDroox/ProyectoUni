@@ -298,7 +298,7 @@ class CRUDVentas:
                 venta['cliente'],
                 venta['Cedula'],
                 descripcion_venta_paragraph,
-                f"${venta['monto_total']:.2f}",
+                f"${venta['monto_total']:.2f} bs",
                 venta['metodo']
             ])
         

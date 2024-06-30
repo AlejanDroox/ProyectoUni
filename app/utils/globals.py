@@ -14,6 +14,7 @@ DIRECCIONES= {
 """Direcciones de enrutamiento para flet"""
 
 CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
+LOGO = r'app\assets\logo.png'
 """ Configuracion de conexion de Base de datos"""
 class User():
     """Guarda los datos de la sesion actual""" 
