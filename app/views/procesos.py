@@ -515,12 +515,14 @@ class RegistroVenta(ft.Container):
         self.btn_add = ft.IconButton(
             icon=ft.icons.ADD,
             disabled=True,
+            icon_size=15,
             tooltip='Agregar Producto al Registro',
-            on_click= lambda _: add_product()
+            on_click= lambda _: add_product(),
         )
         self.btn_cancelar = ft.IconButton(
             icon=ft.icons.CANCEL_OUTLINED,
             disabled=True,
+            icon_size=15,
             tooltip='Cancelar seleccion de producto',
             on_click=lambda _: self.cancel_product()
         )
@@ -541,7 +543,6 @@ class RegistroVenta(ft.Container):
                 ),
             width=125,
             padding=ft.padding.only(bottom=175),
-            border=ft.border.all()
         )
         monto_total_text = ft.Text(
             value=f'Monto total: 0 bs',
@@ -569,18 +570,19 @@ class RegistroVenta(ft.Container):
             [entry_ci_cliente, self.btn_date_picker],
             alignment=ft.MainAxisAlignment.START
         )
+        cont_cantidad = ft.Container(self.entry_cant, padding=ft.padding.only(right=160))
         body = ft.Column(
             [
                 ft.Container(title, alignment=ft.Alignment(-0.6,0.2)),
                 ft.Row(
                     [
-                        self.entry_producto, self.entry_cant, 
+                        self.entry_producto, cont_cantidad , cliente_fecha
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
                 ft.Row(
                     [
-                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar
+                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar, 
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),

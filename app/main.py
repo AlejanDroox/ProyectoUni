@@ -24,7 +24,8 @@ def main(page: ft.Page):
         page.views.append(
             ft.View(
                 '/',
-                [body_inicio.body]
+                [body_inicio.body],
+                bgcolor=GRIS_FONDOS
             )
         )
         if page.route == DIRECCIONES['inventario']:

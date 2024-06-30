@@ -1,12 +1,12 @@
 """Contiene todo la estructura visual del inicio de sesion y
 los procesos de la ventana misma"""
 import flet as ft
-from utils.globals import DIRECCIONES, CONFIG, user
+from utils.globals import DIRECCIONES, CONFIG, user, LOGO
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
 from time import sleep
 class InicioSesion():
-    def __init__(self, page, inventario):
+    def __init__(self, page:ft.Page, inventario):
         super().__init__()
         self.inventario = inventario
         self.page: ft.Page = page
@@ -34,7 +34,80 @@ class InicioSesion():
             text_vertical_align= -1.0,
             on_submit= lambda _: self.entry_pass.focus()
         )
-        self.body = ft.Container(
+        outer_container = ft.Container(
+            width=800,
+            bgcolor='#D7D7D7',
+            border_radius=10,
+            alignment=ft.alignment.center,
+        )
+
+        # Contenedor interior 
+        inner_container = ft.Container(
+            width=380,
+            height=460,
+            bgcolor="white",
+            border_radius=10,
+            padding=10,
+        )
+        inner_container.content = ft.Column(
+            controls=[
+                ft.Text(
+                    # Titulo Principal
+                    'Inicio de Sesion',
+                    width=360,
+                    size=30,
+                    weight='w900',
+                    text_align='center',
+                ),
+                # contenedor del enty de la cedula
+                ft.Container(
+                    self.entry_user,
+                    padding=ft.padding.only(35)
+                ),
+                ft.Container(
+                    self.entry_pass,
+                    padding=ft.padding.only(35)
+                ),
+                ft.Container(
+                    ft.ElevatedButton(
+                        content=ft.Text(
+                            'ENTRAR',
+                            weight='w500',
+                            color='white'
+                        ),
+                        width=280,
+                        bgcolor='black',
+                        on_click=lambda _: self.auth(page)
+                    ),
+                    padding=ft.padding.only(40, 10),
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_EVENLY,
+            width=360,
+            height=440
+        )
+        # Imagen en el lado izquierdo
+        image = ft.Image(
+            src=LOGO,  # reemplaza con la URL de tu imagen
+            width=380,
+            height=460,
+            fit=ft.ImageFit.CONTAIN,
+            border_radius=10,
+            filter_quality=ft.FilterQuality.HIGH,
+        )
+        outer_container.content = ft.Row(
+            controls=[
+                ft.Container(image, padding=ft.padding.only(12)),
+                inner_container
+            ],
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+        )
+        outer_container2 = ft.Container(
+            content=outer_container,
+            padding=ft.padding.only(230, 75)
+        )
+        self.body = ft.Column(controls=[outer_container2], alignment=ft.MainAxisAlignment.CENTER, )
+        self.body2 = ft.Container(
             ft.Row([
                 ft.Container(
                     ft.Column(
