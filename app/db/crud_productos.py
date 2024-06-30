@@ -1,7 +1,7 @@
 from db.db_connector import DbConnector
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
-
+from utils.errores import ValuesExist
 from utils.globals import CONFIG
 
 
@@ -63,11 +63,9 @@ class ControlProductos():
                 )
             self.db_connector.session.add(producto)
             self.db_connector.session.commit()
-            #print(f"El producto {nom_Producto} fue creado exitosamente.")
-            return True
-        else:
-            #print(f"El producto {nom_Producto} ya existe.")
-            return False
+            msg = f"El producto {nom_Producto} fue creado exitosamente."
+            return msg
+        raise ValuesExist(msg=f'El nombre del producto {nom_Producto} ya se encuentra, intente otro porfavor.')
 
     def update_products(self, nom_Producto, **kwargs):
         #print(Producto)

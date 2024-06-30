@@ -1,5 +1,5 @@
 class NullValues(Exception):
-    def __init__(self, sin_values):
+    def __init__(self, sin_values = []):
         super().__init__()
         self.sin_values = sin_values
 class ValuesInvalid(Exception):

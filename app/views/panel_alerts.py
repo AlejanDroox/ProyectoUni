@@ -1,12 +1,14 @@
 import flet as ft
+from db.permisos import PERMISOS
+from db.db_connector import DbConnector
+from db.crud_usuarios import ControlUsuarios
+from utils.errores import ValuesExist
+from utils.globals import user, CONFIG
 
 class PanelAlerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
     alert dialog los guarda en una variable y segun se necesite el contenido del alert
     dialog sera uno u otro. tambien posee el backend de los mismos"""
-    STYLE_ALERT = {
-        'bgcolor': 'white',  
-    }
     def __init__(self, page:ft.Page, crtl_user, load_table):
         super().__init__()
         self.load_table = load_table
@@ -18,6 +20,7 @@ class PanelAlerts(ft.AlertDialog):
             'dell': self.alert_dell,
             'edit_rol': self.alert_edit_rol,
             'edit_status': self.alert_edit_status,
+            'not_acces': self.alert_not_acces
         }
         self.STYLE_BANNER_ERROR = {
             'bgcolor':ft.colors.AMBER_100,
@@ -37,6 +40,7 @@ class PanelAlerts(ft.AlertDialog):
         self.draw_alert_dell()
         self.draw_alert_edit_rol()
         self.draw_alert_edit_status()
+        self.draw_not_acces()
     
     def change_alert(self, alert_name):
         self.content = self.alerts[alert_name]
@@ -316,6 +320,37 @@ class PanelAlerts(ft.AlertDialog):
 
             )
         self.alert_edit_status = body
+    def draw_not_acces(self):
+        body = ft.Container(
+            alignment=ft.alignment.center,
+            width=300,
+            height=200,
+            padding=ft.padding.all(16),
+            border_radius=ft.border_radius.all(12),
+            bgcolor=ft.colors.AMBER_100,
+            content=ft.Text(
+                "No posees los permisos para acceder a esta función.\nRequiere un rol de gerente o superior.",
+                size=16,
+                weight=ft.FontWeight.BOLD,
+                text_align=ft.TextAlign.CENTER,
+                color=ft.colors.AMBER_900,
+            ),
+        )
+        self.alert_not_acces = body
+    def show_banner(self, is_error: bool, text:str):
+        if not is_error:
+            self.page.banner = ft.Banner(
+                content=ft.Text(text),
+                **self.STYLE_BANNER_FINE
+            )
+        else:
+            self.page.banner = ft.Banner(
+                content=ft.Text(text),
+                **self.STYLE_BANNER_ERROR
+            )
+        self.page.banner.open = True
+        self.page.update()
+        self.page.banner.actions[0].focus()
     def close_banner(self, e):
         self.page.banner.open = False
         self.page.update()
