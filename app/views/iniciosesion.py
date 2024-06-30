@@ -53,7 +53,7 @@ class InicioSesion():
             controls=[
                 ft.Text(
                     # Titulo Principal
-                    'Inicio de Sesion',
+                    'Inicio de Sesión',
                     width=360,
                     size=30,
                     weight='w900',
