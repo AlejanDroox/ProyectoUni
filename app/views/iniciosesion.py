@@ -1,15 +1,19 @@
 """Contiene todo la estructura visual del inicio de sesion y
 los procesos de la ventana misma"""
 import flet as ft
+from time import sleep
 from utils.globals import DIRECCIONES, CONFIG, user, LOGO
+from views.panel_alerts import PanelAlerts
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
-from time import sleep
+from sqlalchemy.exc import SQLAlchemyError
+
 class InicioSesion():
     def __init__(self, page:ft.Page, inventario):
         super().__init__()
         self.inventario = inventario
         self.page: ft.Page = page
+        self.panel_alerts = PanelAlerts(page)
         self.entry_pass = ft.TextField(
                 width=280,
                 height=40,
@@ -210,26 +214,30 @@ class InicioSesion():
         self.page.update()
     def auth(self, page:ft.Page):
         """autentificacion para el enrutamiento del inicio de sesion"""
-
-        conx = DbConnector(config=CONFIG)
-        ctrl = ControlUsuarios(conx)
-        n_user = self.entry_user.value
-        passw = self.entry_pass.value
-        if ctrl.authenticate_user(n_user,passw):
-            user.setter(ctrl.encontrar_usuario(n_user))
-            if not self.one_inicio:
-                self.inventario.contenido()
-                self.one_inicio = True
-            self.inventario.agregar_tabs()
-            self.entry_user.value = ''
-            self.entry_pass.value = ''
-            self.open_banner('aprovado')
-            sleep(1.5)
-            self.close_banner()
-            page.go(DIRECCIONES['inventario'])
-            
-        else:
-            self.open_banner('error')
+        try:
+            conx = DbConnector(config=CONFIG)
+            ctrl = ControlUsuarios(conx)
+            n_user = self.entry_user.value
+            passw = self.entry_pass.value
+            if ctrl.authenticate_user(n_user,passw):
+                user.setter(ctrl.encontrar_usuario(n_user))
+                if not self.one_inicio:
+                    self.inventario.contenido()
+                    self.one_inicio = True
+                self.inventario.agregar_tabs()
+                self.entry_user.value = ''
+                self.entry_pass.value = ''
+                self.open_banner('aprovado')
+                sleep(1.5)
+                self.close_banner()
+                page.go(DIRECCIONES['inventario'])
+                
+            else:
+                self.open_banner('error')
+        except SQLAlchemyError as e:
+                self.panel_alerts.show_banner(True, text=f'Error en la base de datos, contactar con servicio tecnico.\n{e}')
+        except Exception as e:
+                self.panel_alerts.show_banner(True, text=f'Error desconocido, contactar con servicio tecnico.\n{e}')
     def build(self):
         self.entry_user.focus()
 

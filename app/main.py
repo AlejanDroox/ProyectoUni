@@ -73,7 +73,7 @@ def main(page: ft.Page):
                 ft.View(
                     DIRECCIONES['registro'],
                     [
-                        ft.AppBar(title=ft.Text("Registro", size=36), **STYLE_APP_BAR),
+                        ft.AppBar(title=ft.Text("Registro de Ventas", size=36), **STYLE_APP_BAR),
                         TablaRegistro(page)
                     ],
                     drawer=menu,

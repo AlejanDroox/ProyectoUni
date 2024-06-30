@@ -261,7 +261,7 @@ class Inventario(ft.Tabs):
                     icon=ft.icons.INVENTORY
                 ),
                 ft.Tab(
-                    text = 'Registro de Venta',
+                    text = 'Informe de Venta',
                     tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
                     content=self.registro_ventas,
                 ),
@@ -279,7 +279,7 @@ class Inventario(ft.Tabs):
                     icon=ft.icons.INVENTORY
                 ),
                 ft.Tab(
-                    text = 'Registro de Venta',
+                    text = 'Informe de Venta',
                     tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
                     content=self.registro_ventas,
                 ),
@@ -366,7 +366,7 @@ class RegistroVenta(ft.Container):
                 on_change=self.on_date_selected,
             )
         title = ft.Text(
-            value='Registro De Ventas',
+            value='Informe de Venta',
             size=48,
             weight=ft.FontWeight.W_900
         )

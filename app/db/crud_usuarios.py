@@ -60,9 +60,6 @@ class ControlUsuarios:
             if bcrypt.checkpw(password.encode('utf-8'), usuario.contrasena.encode('utf-8')):
                 print("Usuario autenticado correctamente.")
                 return True
-            else:
-                print("Contraseña incorrecta.")
-                return False
         else:
             print(f"El usuario '{username}' no fue encontrado")
             return False

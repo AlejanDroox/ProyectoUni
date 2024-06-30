@@ -9,7 +9,7 @@ class PanelAlerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
     alert dialog los guarda en una variable y segun se necesite el contenido del alert
     dialog sera uno u otro. tambien posee el backend de los mismos"""
-    def __init__(self, page:ft.Page, crtl_user, load_table):
+    def __init__(self, page:ft.Page, crtl_user=None, load_table=None):
         super().__init__()
         self.load_table = load_table
         self.crtl_user = crtl_user
