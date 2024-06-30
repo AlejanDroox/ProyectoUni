@@ -27,7 +27,7 @@ class InicioSesion():
             width=280,
             height=40,
             border_radius= ft.border_radius.horizontal(left=10,right=30),
-            label = 'Username',
+            label = 'Usuario',
             #hint_text='Cedula', es otra forma de poner el texto pero el de arriba me gusto mas
             prefix_icon=ft.icons.PEOPLE,
             #input_filter= ft.NumbersOnlyInputFilter(),
