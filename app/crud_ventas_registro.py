@@ -2,6 +2,12 @@ from sqlalchemy import create_engine, Column, Integer, String, Numeric, ForeignK
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from datetime import datetime
 from utils.globals import CONFIG
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 
@@ -94,9 +100,12 @@ class CRUDVentas:
     def __init__(self, db_session):
         self.db_session = db_session
 
-    def encontrar_producto(self, nombre):
-        """Busca producto por nombre"""
-        return self.db_session.query(Producto).filter_by(nom_producto=nombre).first()
+    def encontrar_producto(self, nombre, descripcion=None):
+        """Busca producto por nombre y descripción"""
+        query = self.db_session.query(Producto).filter_by(nom_producto=nombre)
+        if descripcion:
+            query = query.filter_by(Desc_Producto=descripcion)
+        return query.first()
 
     def encontrar_usuario(self, username):
         """Busca usuario por nombre"""
@@ -243,6 +252,76 @@ class CRUDVentas:
         else:
             return [f"Error al crear la venta: {mensaje}"]
 
+    def agregar_producto(self, nombre, descripcion, existencia, valor_c, valor_v, image=None):
+        """Agrega un nuevo producto si no existe uno con el mismo nombre y descripción"""
+        producto_existente = self.encontrar_producto(nombre, descripcion)
+        if producto_existente:
+            return None, "Producto con el mismo nombre y descripción ya existe"
+
+        nuevo_producto = Producto(
+            nom_producto=nombre,
+            Desc_Producto=descripcion,
+            Existencia=existencia,
+            Valor_Producto_C=valor_c,
+            Valor_Producto_V=valor_v,
+            Image=image
+        )
+        self.db_session.add(nuevo_producto)
+        self.db_session.commit()
+        return nuevo_producto, "Producto agregado exitosamente"
+
+    def generar_pdf_ventas(self, ventas, filename='ventas.pdf'):
+        """Genera un PDF con todas las ventas registradas"""
+        doc = SimpleDocTemplate(filename, pagesize=letter,
+                                rightMargin=inch, leftMargin=inch,
+                                topMargin=inch, bottomMargin=inch)
+        elements = []
+        
+        # Definir estilos
+        styles = getSampleStyleSheet()
+        style_title = styles['Title']
+        style_normal = styles['Normal']
+        style_heading = styles['Heading2']
+        
+        # Título del documento
+        elements.append(Paragraph("Registro de Ventas", style_title))
+        elements.append(Spacer(1, 12))  # Espaciador
+        
+        # Encabezados de la tabla
+        table_data = [['Fecha', 'Cliente', 'Identificación', 'Descripción', 'Monto Total', 'Método']]
+        
+        for venta in ventas:
+            descripcion_venta = "<br/>".join([f"{producto}: {cantidad}" for producto, cantidad in venta['Descripcion_Venta'].items()])
+            descripcion_venta_paragraph = Paragraph(descripcion_venta, style_normal)
+            table_data.append([
+                venta['fecha'],
+                venta['cliente'],
+                venta['Cedula'],
+                descripcion_venta_paragraph,
+                f"${venta['monto_total']:.2f}",
+                venta['metodo']
+            ])
+        
+        # Crear tabla
+        table = Table(table_data, colWidths=[80, 100, 100, 200, 80, 80])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.gray),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        
+        elements.append(table)
+        
+        # Construir el documento PDF
+        doc.build(elements)
+
+        return filename
+
 # Ejemplo de uso
 if __name__ == '__main__':
     conexion = DbConnector(CONFIG)
@@ -254,7 +333,7 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-    ventas = [("Martillo", 1, 25.0), ("Clavos", 1, 10.0), ("Lijas", 8, 5.0)]
+    ventas = [("Martillo", 9, 25.0), ("Clavos", 9, 10.0)]
     resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
     
     for resultado in resultados:
@@ -265,6 +344,9 @@ if __name__ == '__main__':
     for registro in ventas_registradas:
         print(registro)
 
+    # Generar PDF de ventas
+    pdf_filename = crud_ventas.generar_pdf_ventas(ventas_registradas)
+    print(f"PDF generado: {pdf_filename}")
+
     # Cierra la sesión de la base de datos
     db_session.close()
-    #aaaaaaaaaaaa

@@ -12,7 +12,7 @@ DIRECCIONES= {
 }
 """Direcciones de enrutamiento para flet"""
 
-CONFIG = 'mysql://root:1234@127.0.0.1:3306/dbferreteria'
+CONFIG = 'mysql://root:root123@127.0.0.1:3306/dbferreteria'
 """ Configuracion de conexion de Base de datos"""
 class User():
     """Guarda los datos de la sesion actual""" 
