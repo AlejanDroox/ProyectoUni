@@ -50,7 +50,7 @@ class ControlProductos():
  
 
     def create_product(self, nom_Producto, existencia, descripcion, valor_v,valor_c,
-                    id_usuarios, image):
+                    id_usuarios, image, provee):
         """crea un producto"""
         producto = self.encontrar_producto(nom_Producto)
         if not producto:
@@ -61,6 +61,7 @@ class ControlProductos():
                 Valor_Producto_C=valor_c,
                 Valor_Producto_V=valor_v,
                 Image=image,
+                Proveedor= provee,
                 #Users_idUsers=id_usuarios
                 )
             self.db_connector.session.add(producto)
@@ -77,11 +78,8 @@ class ControlProductos():
             for key, value in kwargs.items():
                 setattr(producto, key, value)
             self.db_connector.session.commit()
-            print(f"los datos del producto {nom_Producto} se han actualizado")
-            return True
-        else:
-            print(f"El producto {nom_Producto} no se encuentra en existencia")
-            return False
+            msg = f"los datos del producto {nom_Producto} se han actualizado"
+            return msg
 
 
 

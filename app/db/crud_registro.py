@@ -245,7 +245,7 @@ class CRUDVentas:
 
         # Crear un solo registro de venta
         nueva_venta, mensaje = self.crear_venta(productos, usuario.idUsers, metodo_pago, fecha_venta, nuevo_grupo, cliente.id_cliente)
-        
+        return 'Venta creada con exito'
         if nueva_venta:
             return [f"Venta creada: Fecha {nueva_venta.Fecha_Venta}, Cliente {nombre_cliente}, Descripción {nueva_venta.Desc_compra}, Monto {nueva_venta.Monto_venta}, Método {nueva_venta.Metodo}"]
         else:

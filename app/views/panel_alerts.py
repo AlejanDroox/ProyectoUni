@@ -20,7 +20,8 @@ class PanelAlerts(ft.AlertDialog):
             'dell': self.alert_dell,
             'edit_rol': self.alert_edit_rol,
             'edit_status': self.alert_edit_status,
-            'not_acces': self.alert_not_acces
+            'not_acces': self.alert_not_acces,
+            'add_client': self.alert_add_client,
         }
         self.STYLE_BANNER_ERROR = {
             'bgcolor':ft.colors.AMBER_100,
@@ -41,10 +42,10 @@ class PanelAlerts(ft.AlertDialog):
         self.draw_alert_edit_rol()
         self.draw_alert_edit_status()
         self.draw_not_acces()
+        self.draw_alert_add_client()
     
     def change_alert(self, alert_name):
         self.content = self.alerts[alert_name]
-    
     def draw_alert_agg(self):
         """Crea el alert Dialog de agregar usuario"""
         def mostrar_pass(btn:ft.IconButton, entry: ft.TextField):
@@ -343,6 +344,56 @@ class PanelAlerts(ft.AlertDialog):
             ),
         )
         self.alert_not_acces = body
+    def draw_alert_add_client(self):
+        """Dibuja la alerta para agregar un cliente."""
+        self.nombre_cliente = ft.TextField(label="Nombre del Cliente")
+        self.numero_identificacion = ft.TextField(label="Número de Identificación")
+
+        btn_aceptar = ft.TextButton(
+            text="Aceptar",
+            on_click=lambda _: self.add_client()
+        )
+        btn_cancelar = ft.TextButton(
+            text="Cancelar",
+            on_click=self.close
+        )
+
+        body = ft.Container(
+            content=ft.Column(
+                [
+                    self.nombre_cliente,
+                    self.numero_identificacion,
+                    ft.Row(
+                        [
+                            btn_cancelar,
+                            btn_aceptar
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                    )
+                ],
+                width=512,
+                height=408,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            )
+        )
+        self.alert_add_client = body
+
+    def add_client(self):
+        """Agrega un nuevo cliente utilizando los datos de los campos de entrada."""
+        nombre = self.nombre_cliente.value
+        numero = self.numero_identificacion.value
+
+        if nombre and numero:
+            cliente = self.crtl_user.crear_cliente(nombre, numero)
+            if cliente:
+                self.show_banner(is_error=False, text="Cliente agregado exitosamente.")
+            else:
+                self.show_banner(is_error=True, text="Error al agregar el cliente.")
+        else:
+            self.show_banner(is_error=True, text="Por favor, complete todos los campos.")
+
+        self.close(self.nombre_cliente, self.numero_identificacion)
     def show_banner(self, is_error: bool, text:str):
         if not is_error:
             self.page.banner = ft.Banner(
