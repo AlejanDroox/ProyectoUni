@@ -2,14 +2,14 @@ import flet as ft
 from db.permisos import PERMISOS
 from db.db_connector import DbConnector
 from db.crud_usuarios import ControlUsuarios
-from utils.errores import ValuesExist
+from utils.errores import ValuesExist, InvalidPermiss
 from utils.globals import user, CONFIG
-
+from time import sleep
 class PanelAlerts(ft.AlertDialog):
     """Un controlador de los distintos alertdialog que necesarios, crea todos los 
     alert dialog los guarda en una variable y segun se necesite el contenido del alert
     dialog sera uno u otro. tambien posee el backend de los mismos"""
-    def __init__(self, page:ft.Page, crtl_user=None, load_table=None):
+    def __init__(self, page:ft.Page, crtl_user: ControlUsuarios=None, load_table=None):
         super().__init__()
         self.load_table = load_table
         self.crtl_user = crtl_user
@@ -167,7 +167,7 @@ class PanelAlerts(ft.AlertDialog):
                 self.close(entry_user, entry_user_r)
         def comprobacion(e):
             enabled = bool(entry_user.value and entry_user_r.value and entry_user.value == entry_user_r.value)
-            btn_aceptar.disabled = enabled
+            btn_aceptar.disabled = not enabled
             btn_aceptar.update()
         title = ft.Text("Eliminar Usuario", size=48, weight=ft.FontWeight.W_900)
         entry_user = ft.TextField(label='Nombre de Usuario a eliminar', width=240, on_change=comprobacion)
@@ -197,10 +197,16 @@ class PanelAlerts(ft.AlertDialog):
     
     def draw_alert_edit_rol(self):
         def aceptar():
-            new_user = entry_user.value
-            passw = entry_pass.value
-            rol = multi_select.value
-            self.crtl_user.create_user(usuario_creador=user, username=new_user, password=passw, rol_nombre=rol)
+            try:
+                msg = self.crtl_user.edit_rol_user(user, username=entry_user.value, rol_nuevo=multi_select.value)
+                self.show_banner(False, text=msg)
+            except ValuesExist as e:
+                self.show_banner(True, text=e.msg)
+            except InvalidPermiss as e:
+                self.show_banner(True, text=e.msg)
+            except Exception as e:
+                self.show_banner(True, text=e)
+            self.close(entry_user)
         def check():
             btn_aceptar.disabled = not btn_aceptar.disabled
             self.page.update()
@@ -260,7 +266,7 @@ class PanelAlerts(ft.AlertDialog):
             self.close([entry_user, en])
             
         def check():
-            disble = btn_check.value and entry_user.value and r
+            disble = btn_check.value and entry_user.value
             btn_aceptar.disabled = not btn_aceptar.disabled
             self.page.update()
         def search_user(e):
@@ -350,7 +356,11 @@ class PanelAlerts(ft.AlertDialog):
             )
         self.page.banner.open = True
         self.page.update()
-        self.page.banner.actions[0].focus()
+        try:
+            self.page.banner.actions[0].focus()
+            #sleep(5)
+            self.page.update()
+        except: pass
     def close_banner(self, e):
         self.page.banner.open = False
         self.page.update()

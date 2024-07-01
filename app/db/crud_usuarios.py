@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from db import permisos
 from utils.globals import CONFIG
-from utils.errores import ValuesExist
+from utils.errores import ValuesExist, InvalidPermiss
 
 # Crea el motor de SQLAlchemy
 engine = create_engine(CONFIG)
@@ -167,57 +167,19 @@ class ControlUsuarios:
 
     # inicio editar rol
     def edit_rol_user(self,usuario_creador,username,rol_nuevo):
+        usuario = self.encontrar_usuario(username)
+        if not usuario:
+            raise ValuesExist(msg=f'No se a encontrado el usuario "{username}", intentelo nuevamente.')
 
-        if   permisos.actualizar_admin(usuario_creador)=="administrador" :
-                print("uwu")
-                usuario = self.encontrar_usuario(username)
+        if usuario_creador.rol == 'administrador' and usuario.Rol in ['gerente', 'empleado']:
+            old_rol = usuario.Rol
+            usuario.Rol= rol_nuevo
+            self.db_connector.session.commit()
+            self.db_connector.session.commit()
+            msg = f"Se a realizado Exitosamente el cambio de estatus al {usuario.username}. \n(Cambio: {old_rol} -> {rol_nuevo}))"
+            return msg
 
-                if usuario.rol !="administrador" or usuario.rol !="gerente" or usuario.rol !='empleado':
-
-
-                    if  rol_nuevo== 'administrador' or rol_nuevo=='gerente' or rol_nuevo=='empleado':
-                        usuario.rol= rol_nuevo
-                        self.db_connector.session.commit()
-                        print(f"el rol fue cambiado a {rol_nuevo}")
-
-
-                elif rol_nuevo!= 'administrador' or rol_nuevo!='gerente' or rol_nuevo!='empleado':
-
-                    print("como vas a escribir mal imbecil")
-
-                else: print("ni modo  cuando lo sabes lo sabes")
-
-
-
-
-        # actualizar gerente
-
-
-
-        if  permisos.actualizar_gerente(usuario_creador)=="gerente" :
-                print(permisos.actualizar_gerente(usuario_creador))
-                print(usuario_creador.rol)
-                usuario = self.encontrar_usuario(username)
-                if usuario.rol =="administrador":
-                    print("ud no puede editar a un administrador")
-
-                elif usuario.rol !="administrador" or usuario.rol !="gerente" or usuario.rol !='empleado':
-
-                    if rol_nuevo=='administrador':
-                        print( "no puedes volver a alguien administrador eres gerente")
-
-                    elif  rol_nuevo== 'administrador' or rol_nuevo=='gerente' or rol_nuevo=='empleado':
-                            usuario.rol= rol_nuevo
-                            self.db_connector.session.commit()
-                            print(f"el rol fue cambiado a {rol_nuevo}")
-
-
-                    elif rol_nuevo!= 'administrador' or rol_nuevo!='gerente' or rol_nuevo!='empleado':
-
-                            print("como vas a escribir mal imbecil")
-                else:print("ni modo  cuando lo sabes lo sabes")
-
-        else:print("usuario no encontrado")
+        raise InvalidPermiss(msg='Los usuarios con estatus de gerente no pueden modificar el estatus de admistradores')
 
 
 
