@@ -17,13 +17,23 @@ from db.crud_registro import CRUDVentas
 
 FILTER_PRICE = ft.InputFilter(allow=True, regex_string=r"[0-9,]{1,3}", replacement_string="")
 class ProductCard(ft.ExpansionPanel):
-    def __init__(self, image, name, description, price_v, price_c, id, Existencia):
+    def __init__(self, image, name, description, price_v, price_c, id, Existencia, edit, Proevedor= None):
         super().__init__()
         self.name = name
         self.image = image
         self.id = id
+        self.edit = edit
         self.Existencia = Existencia
         self.descripcion = description
+        self.data = [
+            name,
+            description,
+            price_c,
+            price_v,
+            Existencia,
+            Proevedor,
+            image,
+        ]
         self.price_c = round(float(price_c), 2)
         self.price_v = round(float(price_v), 2)
         self.mini_card = ft.Container(
@@ -49,17 +59,16 @@ class ProductCard(ft.ExpansionPanel):
         ),
         padding=ft.padding.only(bottom=10)
         )
+        visible = bool(user.rol != 'empleado')
         self.header = hed_content
         self.content = ft.Column(
             controls=[
                 ft.Text(f"ID: {self.id}"),
-                #ft.Text("Características:"),
-                #ft.Text("  - " + ", ".join(characteristics)),
                 ft.Text(f"Precio Venta: {self.price_v}"),
                 ft.Text(f"Precio Compra: {self.price_c}"),
                 ft.Text(f"EXistencias: {self.Existencia}"),
-                ft.Text(f"Ultimo Proveedor: Mr. Lorum"),
-                ft.IconButton(icon=ft.icons.EDIT)
+                ft.Text(f"Ultimo Proveedor: {Proevedor}"),
+                ft.IconButton(icon=ft.icons.EDIT, on_click=lambda _:self.edit(self.data), visible = visible)
 
             ],
         )
@@ -213,7 +222,15 @@ class Inventario(ft.Tabs):
         self.registro_ventas = RegistroVenta(self.cargar_productos, self.panel_alerts)
         self.expand=1
         self.cargar_productos()
-
+    def edit(self, data):
+        
+        self.selected_index = 2
+        for i, entry in zip(range(0, len(self.agg_producto.valores)), self.agg_producto.valores):
+            entry.value = data[i]
+        self.agg_producto.image.src = data[-1]
+        self.agg_producto.edit = True
+        self.agg_producto.old_name = data[0]
+        self.update()
     def cargar_productos(self):
         self.conx.reopen_session
         self.ctrl_productos = ControlProductos(self.conx)
@@ -232,7 +249,9 @@ class Inventario(ft.Tabs):
                 price_c=producto.Valor_Producto_C,
                 price_v=producto.Valor_Producto_V,
                 Existencia = producto.Existencia,
-                id=producto.id_producto)
+                id=producto.id_producto,
+                edit=self.edit,
+                Proevedor=producto.Proveedor)
             panel = ft.ExpansionPanelList(
                 expand_icon_color=ft.colors.AMBER,
                 elevation=8,
@@ -253,6 +272,7 @@ class Inventario(ft.Tabs):
         self.conx.close_session()
         self.page.update()
     def agregar_tabs(self):
+        self.agg_producto = AgregarProducto(self.cargar_productos, self.panel_alerts)
         if user.rol != 'empleado':
             self.tabs=[
                 ft.Tab(
@@ -261,12 +281,12 @@ class Inventario(ft.Tabs):
                     icon=ft.icons.INVENTORY
                 ),
                 ft.Tab(
-                    text = 'Registro de Venta',
+                    text = 'Informe de Venta',
                     tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
                     content=self.registro_ventas,
                 ),
                 ft.Tab(
-                    content=AgregarProducto(self.cargar_productos, self.panel_alerts),
+                    content=self.agg_producto,
                     icon=ft.icons.EDIT_SQUARE,
                 ),
                 
@@ -279,7 +299,7 @@ class Inventario(ft.Tabs):
                     icon=ft.icons.INVENTORY
                 ),
                 ft.Tab(
-                    text = 'Registro de Venta',
+                    text = 'Informe de Venta',
                     tab_content=ft.Icon(ft.icons.ADD_SHOPPING_CART),
                     content=self.registro_ventas,
                 ),
@@ -299,16 +319,16 @@ class RegistroVenta(ft.Container):
     def __init__(self, refrehs, panel_alerts):
         super().__init__()
         self.panel_alerts = panel_alerts
-        #self.border=ft.border.all(color='#BABABA', width=2.5)
         self.products = []
         self.products_mini = []
         self.monto_total = 0
         self.refrehs = lambda _: refrehs
         self.conx = DbConnectorRV(CONFIG)
         self.bgcolor = '#D7D7D7'
-        #self.bgcolor = GRIS_FONDOS
+
     def draw_contenido(self):
         self.productos_venta = []
+
         def comprobar_cant(e):
             control: ft.TextField = e.control
             for i in self.products:
@@ -329,50 +349,51 @@ class RegistroVenta(ft.Container):
                 self.btn_add.disabled = False
                 control.color = None
             self.update()
-        
+
         def add_product():
-            
             if self.entry_cant.color != 'red':
                 n = self.entry_producto.value
                 c = int(self.entry_cant.value)
                 repeat = False
                 registro_product = f'- {self.entry_producto.value} : {self.entry_cant.value} \n'
-                self.actualizar_celda(0,2, registro_product)
+                self.actualizar_celda(0, 2, registro_product)
                 for i in self.products:
-                    i:MiniCard
+                    i: MiniCard
                     if i.name == self.entry_producto.value:
-                        p = round(float(i.price),2)
+                        p = round(float(i.price), 2)
                         i.actualizar_cant(c)
                         self.monto_total += i.price * int(self.entry_cant.value)
                         monto_total_text.value = f'Monto Total: {self.monto_total} bs'
-                        self.actualizar_celda(0,3, self.monto_total)
+                        self.actualizar_celda(0, 3, self.monto_total)
                         break
-                        
-                producto = (n,c,p)
-                if not repeat: self.productos_venta.append(producto)
+
+                producto = (n, c, p)
+                if not repeat:
+                    self.productos_venta.append(producto)
                 self.entry_producto.value = ''
                 self.entry_producto.disabled = False
                 self.entry_cant.disabled = True
                 self.btn_add.disabled = True
                 self.update()
-        
+
         def open_date_picker(e):
             self.datepicker.pick_date()
+
         # Obtener la fecha de hoy
         hoy = datetime.datetime.now()
         self.datepicker = ft.DatePicker(
-                first_date=datetime.datetime(2023, 10, 1),
-                last_date=hoy,
-                on_change=self.on_date_selected,
-            )
+            first_date=datetime.datetime(2023, 10, 1),
+            last_date=hoy,
+            on_change=self.on_date_selected,
+        )
         title = ft.Text(
-            value='Registro De Ventas',
+            value='Informe de Venta',
             size=48,
             weight=ft.FontWeight.W_900
         )
         self.entry_producto = ft.TextField(
             label='Nombre Producto',
-            on_change = lambda _: self.search(self.entry_producto.value)
+            on_change=lambda _: self.search(self.entry_producto.value)
         )
         self.entry_cant = ft.TextField(
             label='Cantidad',
@@ -382,35 +403,41 @@ class RegistroVenta(ft.Container):
             disabled=True,
             on_change=comprobar_cant
         )
-        entry_ci_cliente = ft.TextField(
+        self.entry_ci_cliente = ft.TextField(
             label='Cedula Cliente',
             input_filter=ft.NumbersOnlyInputFilter(),
-            on_change= lambda _: self.actualizar_celda(0, 1, entry_ci_cliente.value)
+            on_change=lambda _: self.actualizar_celda(0, 1, self.entry_ci_cliente.value)
+        )
+        self.btn_add_client = ft.IconButton(
+            icon=ft.icons.PERSON_ADD,
+            tooltip='Agregar Cliente',
+            on_click=lambda _: self.open_dialog('add_client'),
+            visible=False
         )
         self.btn_date_picker = ft.IconButton(
             icon=ft.icons.DATE_RANGE,
             tooltip='Seleccionar fecha',
             on_click=open_date_picker
         )
-        metodo_pago = ft.Dropdown(
-            label= 'Metodo de pago',
+        self.metodo_pago = ft.Dropdown(
+            label='Metodo de pago',
             width=160,
-            options= [
+            options=[
                 ft.dropdown.Option("BS"),
                 ft.dropdown.Option("COP"),
                 ft.dropdown.Option("USD")
             ],
-            on_change= lambda _: self.actualizar_celda(0,4, metodo_pago.value)
+            on_change=lambda _: self.actualizar_celda(0, 4, self.metodo_pago.value)
         )
         headers = ["Fecha", "Cliente", "Descripción de Venta", "Monto Total", "Método de Pago"]
 
         # Crear las filas de la tabla (una fila vacía para empezar)
         rows = [
             ft.DataRow(cells=[
-                ft.DataCell(ft.Text(value='') ) for _ in headers
+                ft.DataCell(ft.Text(value='')) for _ in headers
             ])
         ]
-        
+
         # Crear la tabla
         self.table = ft.DataTable(
             columns=[ft.DataColumn(ft.Text(header)) for header in headers],
@@ -419,18 +446,18 @@ class RegistroVenta(ft.Container):
         )
         self.descripcion_venta = ft.Text(value='', max_lines=None, size=12)
         self.table.rows[0].cells[2].content = ft.Container(
-                    content=ft.Column(
-                        [self.descripcion_venta],
-                        scroll=ft.ScrollMode.AUTO,
-                        expand=True
-                    ),
-                )
+            content=ft.Column(
+                [self.descripcion_venta],
+                scroll=ft.ScrollMode.AUTO,
+                expand=True
+            ),
+        )
         self.btn_add = ft.IconButton(
             icon=ft.icons.ADD,
             disabled=True,
             icon_size=15,
             tooltip='Agregar Producto al Registro',
-            on_click= lambda _: add_product(),
+            on_click=lambda _: add_product(),
         )
         self.btn_cancelar = ft.IconButton(
             icon=ft.icons.CANCEL_OUTLINED,
@@ -441,19 +468,18 @@ class RegistroVenta(ft.Container):
         )
         self.list_product = ft.Container(
             content=ft.Column(controls=self.products,
-                                scroll=ft.ScrollMode.ALWAYS,
-                                spacing=25,
-            ),
+                              scroll=ft.ScrollMode.ALWAYS,
+                              spacing=25,
+                              ),
             height=200,
             width=250,
-            #bgcolor='#D9D9D9'
-            )
+        )
         btns = ft.Container(
-                ft.Row(
-                    [
-                        self.btn_add, self.btn_cancelar
-                    ]
-                ),
+            ft.Row(
+                [
+                    self.btn_add, self.btn_cancelar
+                ]
+            ),
             width=125,
             padding=ft.padding.only(bottom=175),
         )
@@ -464,43 +490,43 @@ class RegistroVenta(ft.Container):
             style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE)
         )
         btn_cancelar_todo = ft.TextButton(
-            text= 'CANCELAR',
+            text='CANCELAR',
         )
         m_pago_btn_cancelar = ft.Column(
             controls=[
-                metodo_pago, btn_cancelar_todo
+                self.metodo_pago, btn_cancelar_todo
             ]
         )
         btn_aceptar = ft.TextButton(
-            text= 'ACEPTAR',
-            on_click= lambda _: self.create_registro()
+            text='ACEPTAR',
+            on_click=lambda _: self.create_registro()
         )
         monto_total_btn_cancelar = ft.Column(
             controls=[monto_total_text, btn_aceptar],
             alignment=ft.MainAxisAlignment.START
         )
         cliente_fecha = ft.Row(
-            [entry_ci_cliente, self.btn_date_picker],
+            [self.entry_ci_cliente, self.btn_add_client, self.btn_date_picker],
             alignment=ft.MainAxisAlignment.START
         )
         cont_cantidad = ft.Container(self.entry_cant, padding=ft.padding.only(right=160))
         body = ft.Column(
             [
-                ft.Container(title, alignment=ft.Alignment(-0.6,0.2)),
+                ft.Container(title, alignment=ft.Alignment(-0.6, 0.2)),
                 ft.Row(
                     [
-                        self.entry_producto, cont_cantidad , cliente_fecha
+                        self.entry_producto, cont_cantidad, cliente_fecha
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
                 ft.Row(
                     [
-                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar, 
+                        self.list_product, btns, m_pago_btn_cancelar, monto_total_btn_cancelar,
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_EVENLY
                 ),
                 ft.Container(
-                    content= self.table,
+                    content=self.table,
                     alignment=ft.alignment.top_center,
                     padding=ft.padding.only(bottom=40))
             ],
@@ -509,17 +535,24 @@ class RegistroVenta(ft.Container):
         self.content = body
 
     def change_date(self, e):
-        #print(type(self.datepicker.value))
         e.control.page.update()
 
-    # happens when example is added to the page (when user chooses the DatePicker control from the grid)
     def did_mount(self):
         self.page.overlay.append(self.datepicker)
         self.page.update()
 
-    # happens when example is removed from the page (when user chooses different control group on the navigation rail)
     def will_unmount(self):
         self.page.overlay.remove(self.datepicker)
+        self.page.update()
+    def open_dialog(self, alert_name):
+        """alerts_names = {
+            'agg': self.alert_agg,
+            'dell': self.alert_dell,
+            'edit_rol': self.alert_edit_rol,
+            'edit_status': self.draw_alert_edit_status,
+        }"""
+        self.panel_alerts.change_alert(alert_name)
+        self.panel_alerts.open = True
         self.page.update()
     def search(self, search):
         if len(search) >= 1:
@@ -537,12 +570,14 @@ class RegistroVenta(ft.Container):
             for i in self.products:
                 i.visible = False
                 self.update()
+
     def on_date_selected(self, e):
         if self.datepicker.value is not None:
             self.actualizar_celda(0, 0, self.datepicker.value.strftime("%Y-%m-%d"))
             self.update()
+
     def select(*self):
-        product:MiniCard = self[1].control
+        product: MiniCard = self[1].control
         self: RegistroVenta = self[0]
         self.entry_producto.value = product.name
         self.entry_producto.disabled = True
@@ -550,19 +585,22 @@ class RegistroVenta(ft.Container):
         self.btn_add.disabled = False
         self.entry_cant.disabled = False
         self.update()
+
     def cancel_product(self):
         self.entry_producto.value = ''
         self.entry_producto.disabled = False
         self.entry_cant.disabled = True
         self.btn_add.disabled = True
         self.update()
-    def actualizar_celda(self,fila, columna, valor):
+
+    def actualizar_celda(self, fila, columna, valor):
         if fila < len(self.table.rows) and columna < len(self.table.columns):
             if columna == 2:
                 self.descripcion_venta.value += valor
             else:
                 self.table.rows[fila].cells[columna].content.value = valor
             self.table.update()
+
     def create_registro(self):
         self.conx.reopen_session()
         self.ctrl_registro = CRUDVentas(self.conx.get_session())
@@ -574,23 +612,27 @@ class RegistroVenta(ft.Container):
                 'monto': self.table.rows[0].cells[3].content.value,
                 'metodo': self.table.rows[0].cells[4].content.value,
             }
-            
+
             for i in registro.values():
                 if not i: raise errores.NullValues()
-            self.ctrl_registro.crear_ventas_multiples(
+            msg = self.ctrl_registro.crear_ventas_multiples(
                 ventas=self.productos_venta,
                 username=user.username,
                 nombre_cliente='pedro',
                 numero_identificacion=registro['cliente'],
                 metodo_pago=registro['metodo'],
                 fecha_venta=registro['fecha'])
-        except errores.NullValues:
-            pass
+            self.panel_alerts.show_banner(False, text=msg)
+            sleep(3)
+            self.draw_contenido()
+        except errores.NullValues as e:
+            self.panel_alerts.show_banner(True, text=e.msg)
+        except Exception as e:
+            self.panel_alerts.show_banner(True, text=e)
         self.conx.close_session()
-        #self.refrehs()
+
     def build(self):
         self.draw_contenido()
-        
 #region agregar producto
 class AgregarProducto(ft.Container):
     def __init__(self, cargar_productos, panel_alerts:PanelAlerts):
@@ -603,7 +645,8 @@ class AgregarProducto(ft.Container):
         self.conx = DbConnector(CONFIG)
         self.ctrl_productos = ControlProductos(self.conx)
         #self.draw_content()
-    
+        self.edit = False
+        self.old_name = ''
     def draw_content(self):
         self.erros = []
         def comprobar_cant(e):
@@ -629,35 +672,56 @@ class AgregarProducto(ft.Container):
                 self.entry_precio_v.tooltip = 'Precio de Venta del Producto'
             self.update()
         def aceptar():
-            null_values = []
-            for i in self.valores:
-                if not i.value: 
-                    null_values.append(i.label)
-            try:
-                if null_values:
-                    raise errores.NullValues(null_values)
-                msg = self.ctrl_productos.create_product(
-                    nom_Producto=self.entry_name.value,
-                    existencia=self.entry_existencias.value,
-                    descripcion=self.entry_descripcion.value,
-                    valor_v=self.entry_precio_v.value,
-                    valor_c=self.entry_precio_v.value,
-                    image=self.image.src,
-                    id_usuarios=1
-                )
-                self.cargar_productos()
-                self.panel_alerts.show_banner(False, msg)
-            except errores.ValuesExist as e:
-                self.panel_alerts.show_banner(True, e.msg)
-            except errores.NullValues as e:
-                self.panel_alerts.show_banner(True, text=f'No se ha añadido todos los valores necesario registro no procesado\n(faltan los valores de {", ".join(e.sin_values)})')
-            except SQLAlchemyError as e:
-                self.panel_alerts.show_banner(True, text=f'Error en la base de datos, contactar con servicio tecnico.\n{e}')
-            except Exception as e:
-                self.panel_alerts.show_banner(True, text=f'Error desconocido, contactar con servicio tecnico.\n{e}')
+            if not self.edit:
+                null_values = []
+                for i in self.valores:
+                    if not i.value: 
+                        null_values.append(i.label)
+                try:
+                    if null_values:
+                        raise errores.NullValues(null_values)
+                    msg = self.ctrl_productos.create_product(
+                        nom_Producto=self.entry_name.value,
+                        existencia=self.entry_existencias.value,
+                        descripcion=self.entry_descripcion.value,
+                        valor_v=self.entry_precio_v.value,
+                        valor_c=self.entry_precio_v.value,
+                        image=self.image.src,
+                        id_usuarios=1, 
+                        provee=self.Proevedor.value
+                    )
+                    self.cargar_productos()
+                    self.panel_alerts.show_banner(False, msg)
+                    self.clean()
+                except errores.ValuesExist as e:
+                    self.panel_alerts.show_banner(True, e.msg)
+                except errores.NullValues as e:
+                    self.panel_alerts.show_banner(True, text=f'No se ha añadido todos los valores necesario registro no procesado\n(faltan los valores de {", ".join(e.sin_values)})')
+                except SQLAlchemyError as e:
+                    self.panel_alerts.show_banner(True, text=f'Error en la base de datos, contactar con servicio tecnico.\n{e}')
+                except Exception as e:
+                    self.panel_alerts.show_banner(True, text=f'Error desconocido, contactar con servicio tecnico.\n{e}')
+            else:
+                try:
+                    data = {
+                        'nom_producto': self.entry_name.value,
+                        'Existencia': self.entry_existencias.value,
+                        'Price_Producto_C':self.entry_precio_c.value,
+                        'Price_Producto_V':self.entry_precio_v.value,
+                        'Desc_Producto': self.entry_descripcion.value,
+                        'Proveedor':self.Proevedor.value,
+                        'Image': self.image.src,
+                    }
+                    msg = self.ctrl_productos.update_products(**data, nom_Producto=self.old_name)
+                    self.panel_alerts.show_banner(False, msg)
+                    self.edit = False
+                    self.old_name = ''
+                    self.clean()
+                except Exception as e:
+                    self.panel_alerts.show_banner(True, text=f'Error desconocido, contactar con servicio tecnico.\n{e}')
         self.image = ft.Image(
                 width=230, height=200, 
-                src=r'app\assets\productos\agregar_imagen.png',
+                src=r'assets/productos/agregar_imagen.png',
                 fit=ft.ImageFit.FILL,
                 error_content=ft.Text('haga click para cargar una imagen'),
                 scale=2,
@@ -685,7 +749,7 @@ class AgregarProducto(ft.Container):
             label='Descripcion',
             multiline=True,
             max_length=150,
-            max_lines=3
+            max_lines=2
         )
         self.entry_precio_c = ft.TextField(
             label='P. Compra',
@@ -710,15 +774,16 @@ class AgregarProducto(ft.Container):
                 ft.dropdown.Option('STANLEY'),
                 ft.dropdown.Option('TOTAL'),
                 ft.dropdown.Option('TRUPER'),
-            ]
+            ],
         )
         self.valores = [
             self.entry_name,
+            self.entry_descripcion,
             self.entry_precio_c,
             self.entry_precio_v,
             self.entry_existencias,
-            self.entry_descripcion,
-            self.Proevedor]
+            self.Proevedor,
+        ]
         btn_aceptar = ft.ElevatedButton(text='Aceptar', on_click=lambda _: aceptar(), color='black')
         btn_cancelar = ft.ElevatedButton(text='Cancelar', on_click= lambda _: aceptar(),color='black')
         container_proee = ft.Container(
@@ -773,6 +838,10 @@ class AgregarProducto(ft.Container):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         self.content = body
+    def clean(self):
+        for i in self.valores:
+            i.value = ''
+        self.image.src = r'assets/productos/agregar_imagen.png'
     def pick_file(self, e):
         self.file_picker.pick_files(allow_multiple=False)
     def on_file_picker_result(self, e: ft.FilePickerResultEvent):
@@ -781,13 +850,13 @@ class AgregarProducto(ft.Container):
             try:
                 self.copy_image_to_assets(path)
             except shutil.SameFileError:
-                self.image.src = f"app/assets/productos/{e.files[0].name}"
+                self.image.src = f"assets/productos/{e.files[0].name}"
             self.image.visible = True
             self.image.update()
             
     def copy_image_to_assets(self, path):
         filename = os.path.basename(path)
-        target_path = f"app/assets/productos/{filename}"
+        target_path = f"assets/productos/{filename}"
         shutil.copyfile(path, target_path)
         self.image.src = target_path
 
@@ -941,8 +1010,9 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
             ft.Container(
                 padding=ft.padding.only(top=361),
                 content= btn_close,
-                alignment=ft.alignment.bottom_center
-            ),
+                alignment=ft.alignment.bottom_center,
+                tooltip='Cerrar Sesion'
+            )
             
         ],
         bgcolor='#C1C1C1',

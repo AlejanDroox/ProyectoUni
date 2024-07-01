@@ -15,7 +15,7 @@ def main(page: ft.Page):
     body_inicio = InicioSesion(page,inventario)
     STYLE_APP_BAR = {
         'bgcolor':'#FFF510',
-        'actions':[ft.Image(src=r'app\assets\logo.png')],
+        'actions':[ft.Image(src=r'assets/logo.png')],
         'toolbar_height':80, 
         'center_title':True
     }
@@ -73,7 +73,7 @@ def main(page: ft.Page):
                 ft.View(
                     DIRECCIONES['registro'],
                     [
-                        ft.AppBar(title=ft.Text("Registro", size=36), **STYLE_APP_BAR),
+                        ft.AppBar(title=ft.Text("Registro de Ventas", size=36), **STYLE_APP_BAR),
                         TablaRegistro(page)
                     ],
                     drawer=menu,

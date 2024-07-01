@@ -8,3 +8,7 @@ class ValuesExist(Exception):
     def __init__(self, msg:str = 'Ha ocurrido un error inesperado intentelo nuevamente \n si el error persiste llamar al servicio tecnico'):
         super().__init__()
         self.msg = msg
+class InvalidPermiss(Exception):
+    def __init__(self, msg = 'no tienes permisos para esta funcion'):
+        super().__init__()
+        self.msg = msg
