@@ -657,7 +657,7 @@ class AgregarProducto(ft.Container):
                 self.panel_alerts.show_banner(True, text=f'Error desconocido, contactar con servicio tecnico.\n{e}')
         self.image = ft.Image(
                 width=230, height=200, 
-                src=r'app\assets\productos\agregar_imagen.png',
+                src=r'assets/productos/agregar_imagen.png',
                 fit=ft.ImageFit.FILL,
                 error_content=ft.Text('haga click para cargar una imagen'),
                 scale=2,
@@ -781,13 +781,13 @@ class AgregarProducto(ft.Container):
             try:
                 self.copy_image_to_assets(path)
             except shutil.SameFileError:
-                self.image.src = f"app/assets/productos/{e.files[0].name}"
+                self.image.src = f"assets/productos/{e.files[0].name}"
             self.image.visible = True
             self.image.update()
             
     def copy_image_to_assets(self, path):
         filename = os.path.basename(path)
-        target_path = f"app/assets/productos/{filename}"
+        target_path = f"assets/productos/{filename}"
         shutil.copyfile(path, target_path)
         self.image.src = target_path
 
@@ -941,8 +941,9 @@ def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
             ft.Container(
                 padding=ft.padding.only(top=361),
                 content= btn_close,
-                alignment=ft.alignment.bottom_center
-            ),
+                alignment=ft.alignment.bottom_center,
+                tooltip='Cerrar Sesion'
+            )
             
         ],
         bgcolor='#C1C1C1',

@@ -143,10 +143,11 @@ class TablaRegistro(ft.Container):
         self.ctrl_registro = CRUDVentas(self.conx.get_session())
         now = datetime.datetime.now()
         current_dir = os.path.dirname(__file__)
-        new_dir = os.path.join(current_dir, '..', 'reportes')
-        filename = f'{new_dir}\{now.strftime('%d-%m-%Y %H:%M')}.pdf'
+        new_dir = os.path.join('reportes/')
+        filename = f'{new_dir}{now.strftime('%d-%m-%Y %H:%M')}.pdf'
         self.ctrl_registro.generar_pdf_ventas(self.datos, filename=filename)
-        webbrowser.open_new(filename)
+        path_total = os.path.abspath(filename)
+        webbrowser.open_new(path_total)
         self.conx.close_session()
     def build(self):
         self.contenido()
