@@ -33,7 +33,7 @@ class TablaDatos(ft.DataTable):
         for dato in datos:
             fila = ft.DataRow(cells=[
                 ft.DataCell(ft.Text(size=18, value=dato['fecha'])),
-                ft.DataCell(ft.Text(size=18, value=dato['cliente'])),
+                ft.DataCell(ft.Text(size=18, value=dato['Cedula'])),
                 ft.DataCell(ft.Column(
                         [ft.Text(size=12, value=self.format_descripcion_venta(dato['Descripcion_Venta']))],
                         scroll=ft.ScrollMode.AUTO,
@@ -46,7 +46,7 @@ class TablaDatos(ft.DataTable):
             self.datos.append(
                 [
                     dato['fecha'],
-                    dato['cliente'],
+                    dato['Cedula'],
                     self.format_descripcion_venta(dato['Descripcion_Venta']),
                     dato['monto_total'],
                     dato['metodo'],
@@ -69,7 +69,7 @@ class TablaDatos(ft.DataTable):
             texto += f"- {producto}: {cantidad}\n"
         return texto
     def generar_pdf(self):
-        pdf = MultiColumnPDF(headers=headers)
+        pdf = 1
         for i in self.datos:
             pdf.row(i)
         pdf.output("app/assets/pdfdd.pdf")

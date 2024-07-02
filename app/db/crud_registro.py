@@ -73,9 +73,7 @@ class DatosCliente(Base):
     __tablename__ = "datos_clientes"
 
     id_cliente = Column(Integer, primary_key=True, index=True)
-    nombre_cliente = Column(String(255), nullable=False)
     numero_identificacion = Column(String(50), nullable=False)
-
     ventas_relacion = relationship("VentaProducto", back_populates="cliente")
 
 # Agregar relación de cliente en VentaProducto
@@ -114,11 +112,11 @@ class CRUDVentas:
         """Busca cliente por nombre e identificación"""
         return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
 
-    def crear_cliente(self, nombre_cliente, numero_identificacion):
+    def crear_cliente(self, numero_identificacion):
         """Crea un nuevo cliente si no existe"""
         cliente = self.encontrar_cliente(numero_identificacion)
         if not cliente:
-            cliente = DatosCliente(nombre_cliente=nombre_cliente, numero_identificacion=numero_identificacion)
+            cliente = DatosCliente(numero_identificacion=numero_identificacion)
             self.db_session.add(cliente)
             self.db_session.commit()
         return cliente
@@ -181,7 +179,6 @@ class CRUDVentas:
             descripcion_venta = {producto.nom_producto: venta_producto.cantidad for venta_producto, producto in productos}
             ventas.append({
                 "fecha": venta.Fecha_Venta.strftime("%Y-%m-%d"),
-                "cliente": cliente.nombre_cliente,
                 "Cedula": cliente.numero_identificacion,
                 "Descripcion_Venta": descripcion_venta,
                 "monto_total": venta.Monto_venta,
@@ -199,7 +196,6 @@ class CRUDVentas:
             descripcion_venta = {producto.nom_producto: venta_producto.cantidad for venta_producto, producto in productos}
             ventas.append({
                 "fecha": venta.Fecha_Venta.strftime("%Y-%m-%d"),
-                "cliente": cliente.nombre_cliente,
                 "Cedula": cliente.numero_identificacion,
                 "Descripcion_Venta": descripcion_venta,
                 "monto_total": venta.Monto_venta,
@@ -228,14 +224,14 @@ class CRUDVentas:
             self.db_session.rollback()
             return False, f"Error al eliminar la venta: {e}"
 
-    def crear_ventas_multiples(self, ventas, username, nombre_cliente, numero_identificacion, metodo_pago, fecha_venta):
+    def crear_ventas_multiples(self, ventas, username, numero_identificacion, metodo_pago, fecha_venta):
         """Crea múltiples ventas a la vez en un solo registro"""
         usuario = self.encontrar_usuario(username)
         if not usuario:
             return [f"Usuario {username} no encontrado"]
 
         # Crear o encontrar el cliente
-        cliente = self.crear_cliente(nombre_cliente, numero_identificacion)
+        cliente = self.crear_cliente(numero_identificacion)
 
         # Obtener nuevo grupo
         nuevo_grupo = self.obtener_nuevo_grupo()
@@ -247,7 +243,7 @@ class CRUDVentas:
         nueva_venta, mensaje = self.crear_venta(productos, usuario.idUsers, metodo_pago, fecha_venta, nuevo_grupo, cliente.id_cliente)
         return 'Venta creada con exito'
         if nueva_venta:
-            return [f"Venta creada: Fecha {nueva_venta.Fecha_Venta}, Cliente {nombre_cliente}, Descripción {nueva_venta.Desc_compra}, Monto {nueva_venta.Monto_venta}, Método {nueva_venta.Metodo}"]
+            return [f"Venta creada: Fecha {nueva_venta.Fecha_Venta}, Descripción {nueva_venta.Desc_compra}, Monto {nueva_venta.Monto_venta}, Método {nueva_venta.Metodo}"]
         else:
             return [f"Error al crear la venta: {mensaje}"]
 
@@ -294,7 +290,6 @@ class CRUDVentas:
             descripcion_venta_paragraph = Paragraph(descripcion_venta, style_normal)
             table_data.append([
                 venta['fecha'],
-                venta['cliente'],
                 venta['Cedula'],
                 descripcion_venta_paragraph,
                 f"${venta['monto_total']:.2f} bs",

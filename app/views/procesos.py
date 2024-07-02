@@ -378,6 +378,11 @@ class RegistroVenta(ft.Container):
 
         def open_date_picker(e):
             self.datepicker.pick_date()
+        def search_client():
+            if len(self.entry_ci_cliente.value) >= 7:
+                self.conx.reopen_session()
+                self.id_cliente = self.ctrl_registro.crear_cliente(self.entry_ci_cliente.value)
+                self.actualizar_celda(0, 1, self.entry_ci_cliente.value)
 
         # Obtener la fecha de hoy
         hoy = datetime.datetime.now()
@@ -612,21 +617,21 @@ class RegistroVenta(ft.Container):
                 'monto': self.table.rows[0].cells[3].content.value,
                 'metodo': self.table.rows[0].cells[4].content.value,
             }
-
+            
             for i in registro.values():
                 if not i: raise errores.NullValues()
             msg = self.ctrl_registro.crear_ventas_multiples(
                 ventas=self.productos_venta,
                 username=user.username,
-                nombre_cliente='pedro',
                 numero_identificacion=registro['cliente'],
                 metodo_pago=registro['metodo'],
-                fecha_venta=registro['fecha'])
+                fecha_venta=registro['fecha'],
+                )
             self.panel_alerts.show_banner(False, text=msg)
             sleep(3)
             self.draw_contenido()
         except errores.NullValues as e:
-            self.panel_alerts.show_banner(True, text=e.msg)
+            self.panel_alerts.show_banner(True, text=f'No se ha podido Registrar la venta faltan los datos:\n{", ".join(e.sin_values)}')
         except Exception as e:
             self.panel_alerts.show_banner(True, text=e)
         self.conx.close_session()
@@ -973,7 +978,7 @@ def tab_edit(producto) -> ft.Container:
     )
     return body
 # pylint: disable=unused-argument
-def menu_lateral(page:ft.Page) -> ft.NavigationDrawer('Menu lateral principal'):
+def menu_lateral(page:ft.Page):
     """devuelve la estructura del menu lateral (drawer)"""
     btn_close = ft.TextButton(
         text='Salir',

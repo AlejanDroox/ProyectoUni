@@ -9,7 +9,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 
-
+from db.db_connector import DbConnectorRV
 
 # Crea el motor de SQLAlchemy
 engine = create_engine(CONFIG)
@@ -115,14 +115,15 @@ class CRUDVentas:
         """Busca cliente por nombre e identificación"""
         return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
 
-    def crear_cliente(self, nombre_cliente, numero_identificacion):
+    def crear_cliente(self, numero_identificacion):
         """Crea un nuevo cliente si no existe"""
         cliente = self.encontrar_cliente(numero_identificacion)
         if not cliente:
-            cliente = DatosCliente(nombre_cliente=nombre_cliente, numero_identificacion=numero_identificacion)
+            cliente = DatosCliente( numero_identificacion=numero_identificacion)
             self.db_session.add(cliente)
             self.db_session.commit()
         return cliente
+    
 
     def obtener_nuevo_grupo(self):
         """Obtiene el nuevo número de grupo para las ventas"""
@@ -229,7 +230,7 @@ class CRUDVentas:
             self.db_session.rollback()
             return False, f"Error al eliminar la venta: {e}"
 
-    def crear_ventas_multiples(self, ventas, username, nombre_cliente, numero_identificacion, metodo_pago, fecha_venta):
+    def crear_ventas_multiples(self, ventas, username, nombre_cliente, numero_identificacion, metodo_pago, fecha_venta, **kargs):
         """Crea múltiples ventas a la vez en un solo registro"""
         usuario = self.encontrar_usuario(username)
         if not usuario:
