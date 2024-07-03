@@ -115,11 +115,11 @@ class CRUDVentas:
         """Busca cliente por nombre e identificación"""
         return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
 
-    def crear_cliente(self, numero_identificacion):
+    def crear_cliente(self, numero_identificacion, nombre):
         """Crea un nuevo cliente si no existe"""
         cliente = self.encontrar_cliente(numero_identificacion)
         if not cliente:
-            cliente = DatosCliente( numero_identificacion=numero_identificacion)
+            cliente = DatosCliente( numero_identificacion=numero_identificacion, nombre_cliente= nombre)
             self.db_session.add(cliente)
             self.db_session.commit()
         return cliente
@@ -334,20 +334,19 @@ if __name__ == '__main__':
     crud_ventas = CRUDVentas(db_session)
 
     # Ejemplo de crear múltiples ventas
-    ventas = [("Martillo", 9, 25.0), ("Clavos", 9, 10.0)]
-    resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
-    
-    for resultado in resultados:
-        print(resultado)
+    #ventas = [("Martillo", 9, 25.0), ("Clavos", 9, 10.0)]
+    #resultados = crud_ventas.crear_ventas_multiples(ventas, "John Doe", "Jane Doe", "123456789", "USD", "2024-06-23")
+    while True:
+        #crud_ventas.crear_cliente(123456, nombre='hola')
 
-    # Obtener y mostrar todas las ventas ordenadas por índice descendente
-    ventas_registradas = crud_ventas.obtener_ventas()
-    for registro in ventas_registradas:
-        print(registro)
-
-    # Generar PDF de ventas
-    pdf_filename = crud_ventas.generar_pdf_ventas(ventas_registradas)
-    print(f"PDF generado: {pdf_filename}")
+        # Obtener y mostrar todas las ventas ordenadas por índice descendente
+        ventas_registradas = crud_ventas.obtener_ventas()
+        for registro in ventas_registradas:
+            print(registro)
+        break
+        # Generar PDF de ventas
+        pdf_filename = crud_ventas.generar_pdf_ventas(ventas_registradas)
+        print(f"PDF generado: {pdf_filename}")
 
     # Cierra la sesión de la base de datos
-    db_session.close()
+    db_session.close()  
