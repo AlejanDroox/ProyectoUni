@@ -344,6 +344,51 @@ class PanelAlerts(ft.AlertDialog):
             ),
         )
         self.alert_not_acces = body
+
+    def agregar_cliente(self, ci, ctrl):
+        def aceptar():
+            try: 
+                if not entry_name.value or not entry_tel.value:raise errores.NullValues()
+                cliente = ctrl.crear_cliente(ci,entry_name.value, entry_tel.value)
+                self.show_banner(False,f"Se ha Creado el cliente de manera exitosa")
+                return cliente
+            except ValuesExist as e:
+                self.show_banner(True, "Se deben agregar todos los valores para crear al cliente")
+            except Exception as e:
+                self.page.banner = ft.Banner(
+                    content=ft.Text(value=self.msg_error_unexp),
+                    **self.STYLE_BANNER_ERROR
+                )
+                self.show_banner(True, e)
+            finally:
+                self.close(entry_ci, entry_name, entry_tel)
+        title = ft.Text("Crear Cliente", size=48, weight=ft.FontWeight.W_900)
+        entry_ci = ft.TextField(label='Cedula', value=ci,disabled=True,width=240)
+        entry_name = ft.TextField(label='Nombre', width=240)
+        entry_tel = ft.TextField(label='Telefono', input_filter=ft.InputFilter(allow=True, regex_string=r"[0-9]+", replacement_string=""), width=240)
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
+        body = ft.Column(
+                    [
+                        title, 
+                        entry_ci,
+                        entry_name,
+                        entry_tel,
+                        ft.Row(
+                            [
+                                btn_cancelar, btn_aceptar
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                        ),
+                        
+                    ],
+                    width=512,
+                    height=408,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+
+            )
+        self.content = body
     def draw_alert_add_client(self):
         """Dibuja la alerta para agregar un cliente."""
         self.nombre_cliente = ft.TextField(label="Nombre del Cliente")

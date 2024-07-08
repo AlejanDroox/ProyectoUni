@@ -51,7 +51,7 @@ class Venta(Base):
     Desc_compra = Column(Text)
     cantidad = Column(Integer, nullable=False)
     Metodo = Column(Enum('BS', 'COP', 'USD'), nullable=False)
-
+    id_Datos_Cliente = Column(Integer)
     productos_relacion = relationship("VentaProducto", back_populates="venta")
 
 # Definición del modelo de VentaProducto
@@ -73,6 +73,8 @@ class DatosCliente(Base):
     __tablename__ = "datos_clientes"
 
     id_cliente = Column(Integer, primary_key=True, index=True)
+    nombre_cliente = Column(Text)
+    telefono = Column(Text)
     numero_identificacion = Column(String(50), nullable=False)
     ventas_relacion = relationship("VentaProducto", back_populates="cliente")
 
@@ -112,11 +114,11 @@ class CRUDVentas:
         """Busca cliente por nombre e identificación"""
         return self.db_session.query(DatosCliente).filter_by(numero_identificacion=numero_identificacion).first()
 
-    def crear_cliente(self, numero_identificacion):
+    def crear_cliente(self, numero_identificacion, nombre, tel):
         """Crea un nuevo cliente si no existe"""
         cliente = self.encontrar_cliente(numero_identificacion)
         if not cliente:
-            cliente = DatosCliente(numero_identificacion=numero_identificacion)
+            cliente = DatosCliente(numero_identificacion=numero_identificacion, nombre_cliente=nombre, telefono=tel)
             self.db_session.add(cliente)
             self.db_session.commit()
         return cliente
@@ -143,7 +145,8 @@ class CRUDVentas:
                 Monto_venta=monto_total,
                 Desc_compra=descripcion,
                 cantidad=sum([venta['cantidad'] for venta in ventas]),
-                Metodo=metodo_pago
+                Metodo=metodo_pago,
+                id_Datos_Cliente=cliente_id
             )
             self.db_session.add(nueva_venta)
             self.db_session.commit()
@@ -231,7 +234,7 @@ class CRUDVentas:
             return [f"Usuario {username} no encontrado"]
 
         # Crear o encontrar el cliente
-        cliente = self.crear_cliente(numero_identificacion)
+        cliente = self.encontrar_cliente(numero_identificacion)
 
         # Obtener nuevo grupo
         nuevo_grupo = self.obtener_nuevo_grupo()

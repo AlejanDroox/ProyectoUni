@@ -171,7 +171,7 @@ class Inventario(ft.Tabs):
             ft.MaterialState.FOCUSED: ft.colors.RED,
             ft.MaterialState.DEFAULT: ft.colors.BLACK,
         }
-        self.panel_alerts = PanelAlerts(page=page, crtl_user=None, load_table=None)
+        self.panel_alerts= PanelAlerts(page=page, crtl_user=None, load_table=None)
         self.divider_color = GRIS_FONDOS
         self.indicator_color = '#909090'
         self.conx = DbConnector(CONFIG)
@@ -316,7 +316,7 @@ class Inventario(ft.Tabs):
 
 #region RegistroVentas
 class RegistroVenta(ft.Container):
-    def __init__(self, refrehs, panel_alerts):
+    def __init__(self, refrehs, panel_alerts: PanelAlerts):
         super().__init__()
         self.panel_alerts = panel_alerts
         self.products = []
@@ -378,11 +378,6 @@ class RegistroVenta(ft.Container):
 
         def open_date_picker(e):
             self.datepicker.pick_date()
-        def search_client():
-            if len(self.entry_ci_cliente.value) >= 7:
-                self.conx.reopen_session()
-                self.id_cliente = self.ctrl_registro.crear_cliente(self.entry_ci_cliente.value)
-                self.actualizar_celda(0, 1, self.entry_ci_cliente.value)
 
         # Obtener la fecha de hoy
         hoy = datetime.datetime.now()
@@ -411,7 +406,6 @@ class RegistroVenta(ft.Container):
         self.entry_ci_cliente = ft.TextField(
             label='Cedula Cliente',
             input_filter=ft.NumbersOnlyInputFilter(),
-            on_change=lambda _: self.actualizar_celda(0, 1, self.entry_ci_cliente.value)
         )
         self.btn_add_client = ft.IconButton(
             icon=ft.icons.PERSON_ADD,
@@ -609,33 +603,94 @@ class RegistroVenta(ft.Container):
     def create_registro(self):
         self.conx.reopen_session()
         self.ctrl_registro = CRUDVentas(self.conx.get_session())
+        self.page.dialog = self.panel_alerts
         try:
+            self.cliente = self.ctrl_registro.encontrar_cliente(self.entry_ci_cliente.value)
+            if not self.cliente:
+                raise errores.ValuesExist()
+            self.actualizar_celda(0, 1, self.cliente.nombre_cliente)
             registro = {
                 'fecha': self.table.rows[0].cells[0].content.value,
-                'cliente': self.table.rows[0].cells[1].content.value,
+                'cliente': self.cliente,
                 'descripcion': self.productos_venta,
                 'monto': self.table.rows[0].cells[3].content.value,
                 'metodo': self.table.rows[0].cells[4].content.value,
             }
-            
             for i in registro.values():
                 if not i: raise errores.NullValues()
+            
             msg = self.ctrl_registro.crear_ventas_multiples(
                 ventas=self.productos_venta,
                 username=user.username,
-                numero_identificacion=registro['cliente'],
+                numero_identificacion=registro['cliente'].numero_identificacion,
                 metodo_pago=registro['metodo'],
                 fecha_venta=registro['fecha'],
                 )
             self.panel_alerts.show_banner(False, text=msg)
             sleep(3)
-            self.draw_contenido()
+            self.cliente = None
         except errores.NullValues as e:
-            self.panel_alerts.show_banner(True, text=f'No se ha podido Registrar la venta faltan los datos:\n{", ".join(e.sin_values)}')
-        except Exception as e:
-            self.panel_alerts.show_banner(True, text=e)
+            self.panel_alerts.show_banner(True, text=f'No se ha podido Registrar la venta faltan datos:\n{", ".join(e.sin_values)}')
+        except errores.ValuesExist as e:
+            self.cliente =self.panel_alerts.agregar_cliente(self.entry_ci_cliente.value, ctrl=self.ctrl_registro)
+            self.panel_alerts.open = True
+            self.page.update()
+            """        except Exception as e:
+                        self.panel_alerts.show_banner(True, text=e)"""
         self.conx.close_session()
+    def agregar_cliente(self, ci):
+        def aceptar():
+            try:
+                if not entry_name.value or not entry_tel.value:raise errores.NullValues()
+                self.cliente = self.ctrl_registro.crear_cliente(ci,entry_name.value, entry_tel.value)
+                self.page.banner = ft.Banner(
+                    content=ft.Text(
+                        f"Se ha Creado el cliente de manera exitosa"
+                    ),
+                    **self.STYLE_BANNER_FINE
+                )
+                show_banner_click()
+            except errores.NullValues as e:
+                self.page.banner = ft.Banner(
+                    content=ft.Text("Tienes que agregar tanto nombre como numero de telefono para registrar el cliente"),
+                    **self.STYLE_BANNER_ERROR
+                )
+                show_banner_click()
+            except:
+                self.page.banner = ft.Banner(
+                    content=ft.Text(value=self.msg_error_unexp),
+                    **self.STYLE_BANNER_ERROR
+                )
+                show_banner_click()
+            finally:
+                self.close(entry_ci, entry_name, entry_tel)
+        title = ft.Text("Crear Cliente", size=48, weight=ft.FontWeight.W_900)
+        entry_ci = ft.TextField(label='Cedula', value=ci,width=240, disabled=True)
+        entry_name = ft.TextField(label='Nombre', width=240)
+        entry_tel = ft.TextField(label='Telefono', input_filter=ft.InputFilter(allow=True, regex_string=r"[0-9]+", replacement_string=""), width=240)
+        btn_aceptar = ft.TextButton(text='Aceptar', on_click=lambda _: aceptar())
+        btn_cancelar = ft.TextButton(text='Cancelar', on_click= lambda _: self.close())
+        body = ft.Column(
+                    [
+                        title, 
+                        entry_ci,
+                        entry_name,
+                        entry_tel,
+                        ft.Row(
+                            [
+                                btn_cancelar, btn_aceptar
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_EVENLY
+                        ),
+                        
+                    ],
+                    width=512,
+                    height=408,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
 
+            )
+        self.content = body
     def build(self):
         self.draw_contenido()
 #region agregar producto
@@ -843,6 +898,7 @@ class AgregarProducto(ft.Container):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         self.content = body
+    
     def clean(self):
         for i in self.valores:
             i.value = ''
